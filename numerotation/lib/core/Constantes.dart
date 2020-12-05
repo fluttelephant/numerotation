@@ -1,0 +1,15 @@
+const String TOKEN = "auth_token_slaywoke#^%561";
+const String BASE_URL = "https://api.numerotation.com/v1";
+const String BASE_URL_STORAGE = "https://numerotation.app.fr/storage/";
+const String storageKey = "numerotationApplication_";
+const String storageDeviseSuffix = "Devise";
+const String storageDeviceTokenSuffix = "DeviceToken";
+const String storageUserSuffix = "UserConnected";
+const String storageTokenSuffix = "UserToken";
+const String storageRefreshTokenSuffix = "RefreshToken";
+const String storageAlreadyReadIntro = "introReaded";
+const String langueSuffix = "langue";
+const String FormatDate = "dd/MM/yyyy";
+const String OTHER_SENDING_DATE_FORMAT = "yyyy/MM/dd";
+const String OTHER_AGENDA_DATE_FORMAT = "yyyy-MM-dd";
+const String API_DATE_FORMAT = 'dd-MM-yyyy hh:mm';
