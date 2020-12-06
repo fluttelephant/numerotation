@@ -15,6 +15,7 @@ class _HomeActivityState extends State<HomeActivity> {
   Iterable<Contact> _contactsAll;
 
   TextEditingController _ctrlSearch = new TextEditingController();
+
   @override
   void initState() {
     getContacts();
@@ -22,7 +23,9 @@ class _HomeActivityState extends State<HomeActivity> {
   }
 
   Future<void> getContacts() async {
-    if (await Permission.contacts.request().isGranted) {
+    if (await Permission.contacts
+        .request()
+        .isGranted) {
       //We already have permissions for contact when we get to this page, so we
       // are now just retrieving it
       final Iterable<Contact> contacts = await ContactsService.getContacts();
@@ -35,7 +38,9 @@ class _HomeActivityState extends State<HomeActivity> {
 
   @override
   Widget build(BuildContext context) {
-    Size size = MediaQuery.of(context).size;
+    Size size = MediaQuery
+        .of(context)
+        .size;
 
     return Scaffold(
       key: _scaffoldKey,
@@ -65,22 +70,32 @@ class _HomeActivityState extends State<HomeActivity> {
                           Text(
                             "Vos contacts",
                             style:
-                                Theme.of(context).textTheme.headline4.copyWith(
-                                      fontSize: 26,
-                                    ),
+                            Theme
+                                .of(context)
+                                .textTheme
+                                .headline4
+                                .copyWith(
+                              fontSize: 26,
+                            ),
                           )
                         ],
                       ),
                       Row(
                         children: [
                           Text(
-                            "${_contacts != null ? _contacts.length : "Aucun contact"} trouvé(s)",
+                            "${_contacts != null
+                                ? _contacts.length
+                                : "Aucun contact"} trouvé(s)",
                             style:
-                                Theme.of(context).textTheme.headline4.copyWith(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey,
-                                    ),
+                            Theme
+                                .of(context)
+                                .textTheme
+                                .headline4
+                                .copyWith(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.grey,
+                            ),
                           )
                         ],
                       ),
@@ -95,7 +110,7 @@ class _HomeActivityState extends State<HomeActivity> {
                         child: TextFormField(
                           decoration: InputDecoration(
                             contentPadding:
-                                EdgeInsets.symmetric(horizontal: 30),
+                            EdgeInsets.symmetric(horizontal: 30),
                             prefixIcon: Icon(CupertinoIcons.search),
                             border: OutlineInputBorder(
                               borderRadius: BorderRadius.circular(20),
@@ -109,15 +124,18 @@ class _HomeActivityState extends State<HomeActivity> {
                             print("$value");
                             _contacts = null;
                             _contacts = _contactsAll.where((c) =>
-                            (c.familyName??"").toLowerCase().contains(value.toLowerCase())||
-                            (c.middleName??"").toLowerCase().contains(value.toLowerCase())||
-                            (c.givenName??"").toLowerCase().contains(value.toLowerCase())||
-                            (c.displayName??"").toLowerCase().contains(value.toLowerCase())||
+                            (c.familyName ?? "").toLowerCase().contains(
+                                value.toLowerCase()) ||
+                                (c.middleName ?? "").toLowerCase().contains(
+                                    value.toLowerCase()) ||
+                                (c.givenName ?? "").toLowerCase().contains(
+                                    value.toLowerCase()) ||
+                                (c.displayName ?? "").toLowerCase().contains(
+                                    value.toLowerCase()) ||
                                 c.phones.any((p) => p.value.contains(value)));
 
-                            setState(() {
-                             });
-                           },
+                            setState(() {});
+                          },
                           controller: _ctrlSearch,
                         ),
                       )
@@ -128,36 +146,43 @@ class _HomeActivityState extends State<HomeActivity> {
             ),
             Expanded(
               child: _contacts != null
-                  //Build a list view of all contacts, displaying their avatar and
-                  // display name
+              //Build a list view of all contacts, displaying their avatar and
+              // display name
                   ? ListView.builder(
-                      itemCount: _contacts?.length ?? 0,
-                      itemBuilder: (BuildContext context, int index) {
-                        Contact contact = _contacts?.elementAt(index);
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
-                              vertical: 2, horizontal: 18),
-                          leading: (contact.avatar != null &&
-                                  contact.avatar.isNotEmpty)
-                              ? CircleAvatar(
-                                  backgroundImage: MemoryImage(contact.avatar),
-                                )
-                              : CircleAvatar(
-                                  child: Text(contact.initials()),
-                                  backgroundColor:
-                                      Theme.of(context).accentColor,
-                                ),
-                          title: Text(contact.displayName ??
-                              contact.familyName ??
-                              contact.middleName ??
-                              contact.givenName ??
-                              ''),
-                        );
-                      },
-                    )
+                itemCount: _contacts?.length ?? 0,
+                itemBuilder: (BuildContext context, int index) {
+                  Contact contact = _contacts?.elementAt(index);
+                  return ListTile(
+                      contentPadding: const EdgeInsets.symmetric(
+                          vertical: 2, horizontal: 18),
+                      leading: (contact.avatar != null &&
+                          contact.avatar.isNotEmpty)
+                          ? CircleAvatar(
+                        backgroundImage: MemoryImage(contact.avatar),
+                      )
+                          : CircleAvatar(
+                        child: Text(contact.initials()),
+                        backgroundColor:
+                        Theme
+                            .of(context)
+                            .accentColor,
+                      ),
+                      title: Text(contact.displayName ??
+                          contact.familyName ??
+                          contact.middleName ??
+                          contact.givenName ??
+                          ''),
+                      subtitle: Text(contact.phones.isNotEmpty
+                          ? contact.phones.first.value
+                          : contact.emails.isNotEmpty
+                          ? contact.emails.first.value
+                          : ""),
+                  );
+                },
+              )
                   : Center(
-                      child: const CircularProgressIndicator(),
-                    ),
+                child: const CircularProgressIndicator(),
+              ),
             )
           ],
         ),
