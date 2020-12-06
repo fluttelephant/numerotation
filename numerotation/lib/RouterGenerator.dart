@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:numerotation/activities/FeaturesListActivity.dart';
 import 'package:numerotation/activities/HomeActivity.dart';
 import 'package:numerotation/activities/LoginActivity.dart';
 import 'package:numerotation/activities/RegisterActivity.dart';
 import 'package:numerotation/activities/SplashScreenActivity.dart';
 
+///
+/// A [RouterGenerator]
+///
 class RouterGenerator {
   static const splash = '';
   static const intro = 'intro';
@@ -12,6 +16,8 @@ class RouterGenerator {
   static const register = 'register';
   static const forgetPassword = 'forget-password';
   static const home = 'home';
+
+  static const featuresList = 'features-list';
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     final dynamic args = settings.arguments;
@@ -26,6 +32,8 @@ class RouterGenerator {
       case home:
         int position = args == null || !(args is int) ? 0 : args;
         return MaterialPageRoute(builder: (_) => HomeActivity());
+      case featuresList:
+        return MaterialPageRoute(builder: (_) => FeaturesListActivity());
       default:
         return MaterialPageRoute(builder: (_) => SplashScreenActivity());
     }

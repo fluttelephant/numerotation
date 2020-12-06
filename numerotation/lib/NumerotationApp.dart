@@ -26,7 +26,7 @@ class _NumerotationAppState extends State<NumerotationApp> {
       locale: allTranslations.locale,
       theme: _buildThemeData(),
       navigatorObservers: [routeObserver],
-      initialRoute: RouterGenerator.splash,
+      initialRoute: RouterGenerator.featuresList,
       onGenerateRoute: RouterGenerator.generateRoute,
       //debugShowMaterialGrid: true,
       debugShowCheckedModeBanner: false,
