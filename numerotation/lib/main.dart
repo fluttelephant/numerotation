@@ -1,3 +1,4 @@
+import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/core/App.dart';
 import 'package:numerotation/core/GlobalTranslations.dart';
