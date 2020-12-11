@@ -20,10 +20,12 @@ class Feature {
     List<Feature> features = List();
     features.add(Feature(name: "Recherche de contact", page: RouterGenerator.home));
     features.add(Feature(name: "Invitation à télécharger"));
-    features.add(Feature(name: "Importation/Exportation contact"));
+    features.add(Feature(name: "Importation/Exportation contact", page: RouterGenerator.importexport));
     features.add(Feature(name: "Restauration des contacts"));
     features.add(Feature(name: "Connexion d'un utilisateur", page: RouterGenerator.login));
     features.add(Feature(name: "Mise à jour des contacts"));
     return features;
   }
+
+
 }

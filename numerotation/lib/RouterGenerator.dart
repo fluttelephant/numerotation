@@ -5,6 +5,9 @@ import 'package:numerotation/activities/LoginActivity.dart';
 import 'package:numerotation/activities/RegisterActivity.dart';
 import 'package:numerotation/activities/SplashScreenActivity.dart';
 
+import 'activities/ImportActivity.dart';
+import 'activities/ImportExportActivity.dart';
+
 ///
 /// A [RouterGenerator]
 ///
@@ -16,6 +19,8 @@ class RouterGenerator {
   static const register = 'register';
   static const forgetPassword = 'forget-password';
   static const home = 'home';
+  static const importexport = 'import-export';
+  static const import = 'import';
 
   static const featuresList = 'features-list';
 
@@ -34,6 +39,10 @@ class RouterGenerator {
         return MaterialPageRoute(builder: (_) => HomeActivity());
       case featuresList:
         return MaterialPageRoute(builder: (_) => FeaturesListActivity());
+      case importexport:
+        return MaterialPageRoute(builder: (_) => ImportExportActivity());
+      case import:
+        return MaterialPageRoute(builder: (_) => ContactListPage());
       default:
         return MaterialPageRoute(builder: (_) => SplashScreenActivity());
     }
