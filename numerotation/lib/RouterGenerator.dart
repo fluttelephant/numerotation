@@ -1,9 +1,12 @@
+import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/activities/FeaturesListActivity.dart';
 import 'package:numerotation/activities/HomeActivity.dart';
 import 'package:numerotation/activities/LoginActivity.dart';
 import 'package:numerotation/activities/RegisterActivity.dart';
 import 'package:numerotation/activities/SplashScreenActivity.dart';
+
+import 'activities/ConvertionActivity.dart';
 
 ///
 /// A [RouterGenerator]
@@ -16,6 +19,7 @@ class RouterGenerator {
   static const register = 'register';
   static const forgetPassword = 'forget-password';
   static const home = 'home';
+  static const convert = 'convert';
 
   static const featuresList = 'features-list';
 
@@ -34,6 +38,9 @@ class RouterGenerator {
         return MaterialPageRoute(builder: (_) => HomeActivity());
       case featuresList:
         return MaterialPageRoute(builder: (_) => FeaturesListActivity());
+      case convert:
+        List<Contact> contacts = args;
+        return MaterialPageRoute(builder: (_) => ConvertionActivity(contacts));
       default:
         return MaterialPageRoute(builder: (_) => SplashScreenActivity());
     }
