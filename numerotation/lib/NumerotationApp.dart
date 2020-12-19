@@ -27,7 +27,7 @@ class _NumerotationAppState extends State<NumerotationApp> {
       locale: allTranslations.locale,
       theme: _buildThemeData(),
       navigatorObservers: [routeObserver],
-      initialRoute: RouterGenerator.featuresList,
+      initialRoute: RouterGenerator.login,
       onGenerateRoute: RouterGenerator.generateRoute,
       //debugShowMaterialGrid: true,
       debugShowCheckedModeBanner: false,
@@ -54,6 +54,11 @@ class _NumerotationAppState extends State<NumerotationApp> {
         headline4: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
+        ),
+        button: TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
         ),
       ),
     );

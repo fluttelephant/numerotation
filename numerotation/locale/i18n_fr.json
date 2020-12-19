@@ -1,3 +1,5 @@
 {
-  "app_name": "Numerotation"
+  "app_name": "Numerotation",
+  "btn_save_labelle": "Enrégistrer",
+  "labelle_selected_contact": "contacts selectionnés"
 }

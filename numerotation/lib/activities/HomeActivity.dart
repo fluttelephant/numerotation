@@ -2,6 +2,9 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/RouterGenerator.dart';
+import 'package:numerotation/core/App.dart';
+import 'package:numerotation/core/utils/theme.dart';
+import 'package:numerotation/shared/CustomElevetion.dart';
 import 'package:numerotation/shared/RoundedCheckBox.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -53,13 +56,34 @@ class _HomeActivityState extends State<HomeActivity> {
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
 
+    var theme = Theme.of(context);
+
     return Scaffold(
       key: _scaffoldKey,
+      appBar: AppBar(
+        backgroundColor: primaryColor.withOpacity(0.1),
+        elevation: 0,
+        title: Text(
+          "PassaDix",
+          style: theme.textTheme.headline4.copyWith(
+            fontSize: 28,
+            color: Colors.black,
+          ),
+        ),
+      ),
       body: SafeArea(
         child: Column(
           children: [
             Container(
-              color: Colors.blueGrey.withOpacity(0.02),
+              decoration: BoxDecoration(
+                  //borderRadius: BorderRadius.all(Radius.circular(this.height / 2)),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.2),
+                      blurRadius: 5.5 * 4.0,
+                      offset: Offset(0, 0.5 * 4),
+                    ),
+                  ], color: Colors.white),
               height: size.height / 4,
               padding: EdgeInsets.all(10),
               child: Column(
@@ -68,9 +92,33 @@ class _HomeActivityState extends State<HomeActivity> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Colors.black,
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          CustomElevation(
+                            height: 40,
+                            child: FlatButton(
+                              color: selectionState
+                                  ? Colors.red[400]
+                                  : primaryColor,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(30.0),
+                              ),
+                              onPressed: () {
+                                setState(() {
+                                  selectionState = !selectionState;
+                                  if (!selectionState) {
+                                    _selectedContact.clear();
+                                  }
+                                });
+                              },
+                              child: Text(
+                                "${selectionState ? "Annuler" : "Commencer"}",
+                                style: theme.textTheme.button.copyWith(),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
@@ -83,6 +131,7 @@ class _HomeActivityState extends State<HomeActivity> {
                             style:
                                 Theme.of(context).textTheme.headline4.copyWith(
                                       fontSize: 26,
+                                      color: primaryColor,
                                     ),
                           )
                         ],
@@ -188,7 +237,13 @@ class _HomeActivityState extends State<HomeActivity> {
                           "${_selectedContact.length != _contacts?.length ?? 0 ? "Tout selectionner" : "déselectionner"}"),
                     ),
                     FlatButton(
-                      onPressed: () {},
+                      onPressed: () {
+                        Navigator.of(context).pushNamed(RouterGenerator.exports,
+                            arguments: _contacts
+                                .where((element) => _selectedContact
+                                    .contains(element.identifier))
+                                .toList());
+                      },
                       child: Text("Exporter"),
                     ),
                   ],

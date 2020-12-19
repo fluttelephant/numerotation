@@ -2,6 +2,7 @@ import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/core/utils/PhoneUtils.dart';
+import 'package:numerotation/core/utils/theme.dart';
 import 'package:numerotation/shared/RoundedCheckBox.dart';
 import 'package:permission_handler/permission_handler.dart';
 
@@ -32,14 +33,22 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
   @override
   Widget build(BuildContext context) {
     Size size = MediaQuery.of(context).size;
-
+    var theme = Theme.of(context);
     return Scaffold(
       key: _scaffoldKey,
       body: SafeArea(
         child: Column(
           children: [
             Container(
-              color: Colors.blueGrey.withOpacity(0.02),
+              decoration: BoxDecoration(
+                  //borderRadius: BorderRadius.all(Radius.circular(this.height / 2)),
+                  boxShadow: <BoxShadow>[
+                    BoxShadow(
+                      color: Colors.blue.withOpacity(0.2),
+                      blurRadius: 5.5 * 4.0,
+                      offset: Offset(0, 0.5 * 4),
+                    ),
+                  ], color: Colors.white),
               height: size.height / 4,
               padding: EdgeInsets.all(10),
               child: Column(
@@ -52,7 +61,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "Contacts selectionnés",
+                            "${widget.contacts != null ? widget.contacts.length : "Aucun"} Contacts selectionnés",
                             style:
                                 Theme.of(context).textTheme.headline4.copyWith(
                                       fontSize: 26,
@@ -60,20 +69,25 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                           )
                         ],
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            "${widget.contacts != null ? widget.contacts.length : "Aucun"} ",
-                            style:
-                                Theme.of(context).textTheme.headline4.copyWith(
-                                      fontSize: 16,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.grey,
-                                    ),
-                          )
-                        ],
-                      ),
+                      Container(
+                        decoration: BoxDecoration(
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: Colors.red.withOpacity(0.2),
+                              blurRadius: 5.5 * 4.0,
+                              offset: Offset(0, 0.5 * 4),
+                            ),
+                          ],
+                          color: Colors.white.withOpacity(0.03),
+                        ),
+                        child: Text(
+                          "Prenez le temps de verifier les contacts que vous voulez convertir",
+                          style: Theme.of(context)
+                              .textTheme
+                              .headline4
+                              .copyWith(fontSize: 11, color: Colors.red),
+                        ),
+                      )
                     ],
                   ),
                 ],
@@ -151,7 +165,8 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                                           5.0),
                                                 ),
                                                 child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
                                                   children: [
                                                     Text(
                                                       "${operator != null ? operator["operator"] : "Inconnu"}",
@@ -159,7 +174,11 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                                         fontSize: 9,
                                                       ),
                                                     ),
-                                                    Text((operator != null ? operator["new_initial"] : "")+normalizePhoneNumber),
+                                                    Text((operator != null
+                                                            ? operator[
+                                                                "new_initial"]
+                                                            : "") +
+                                                        normalizePhoneNumber),
                                                   ],
                                                 ),
                                               )
@@ -185,6 +204,26 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                     ),
             )
           ],
+        ),
+      ),
+      bottomNavigationBar: BottomAppBar(
+        child: Container(
+          height: 50,
+          color: secondaryColor,
+          child: InkWell(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  "Enregistrer",
+                  style: theme.textTheme.headline4.copyWith(
+                    fontSize: 20.0,
+                    color: Colors.black,
+                  ),
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
