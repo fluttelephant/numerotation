@@ -34,8 +34,9 @@ class _SplashScreenActivity extends State<SplashScreenActivity>
   }
 
   onDoneLoading() async {
-    // AppInit.prefs.remove("$storageKey$storageTokenSuffix");
-    // test login
+    //AppInit.prefs.remove("$storageKey$storageTokenSuffix");
+    // test user phone saved
+
     //Load profil
     Navigator.of(context).pushReplacementNamed(RouterGenerator.login);
   }
@@ -45,10 +46,12 @@ class _SplashScreenActivity extends State<SplashScreenActivity>
     return Scaffold(
       key: _scaffoldKey,
       body: Center(
-        child: Text("SplashScreenActivity",
+        child: Text(
+          "SplashScreenActivity",
           style: Theme.of(context).textTheme.headline4.copyWith(
-            color: Colors.black,
-          ),),
+                color: Colors.black,
+              ),
+        ),
       ),
     );
   }

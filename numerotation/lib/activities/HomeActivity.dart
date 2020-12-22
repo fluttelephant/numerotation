@@ -3,6 +3,9 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/RouterGenerator.dart';
 import 'package:numerotation/core/App.dart';
+import 'package:numerotation/core/Constantes.dart';
+import 'package:numerotation/core/GlobalTranslations.dart';
+import 'package:numerotation/core/utils/PhoneUtils.dart';
 import 'package:numerotation/core/utils/theme.dart';
 import 'package:numerotation/shared/CustomElevetion.dart';
 import 'package:numerotation/shared/RoundedCheckBox.dart';
@@ -58,40 +61,98 @@ class _HomeActivityState extends State<HomeActivity> {
 
     var theme = Theme.of(context);
 
+    String phone = App.prefs.getString(storageKey + PREF_USER_PHONE_NUMBER);
+
+    dynamic operatorPhone = PhoneUtils.determinateOperator(phone);
+
     return Scaffold(
       key: _scaffoldKey,
       appBar: AppBar(
-        backgroundColor: primaryColor.withOpacity(0.1),
+        backgroundColor: operatorPhone["operator_color"],
         elevation: 0,
         title: Text(
-          "PassaDix",
+          allTranslations.text("app_name"),
           style: theme.textTheme.headline4.copyWith(
-            fontSize: 28,
-            color: Colors.black,
+            fontSize: 20,
+            color: Colors.white,
+            fontWeight: FontWeight.normal,
           ),
         ),
+        actions: [
+          /*Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: FlatButton(
+              //color: primaryColor,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(30.0),
+              ),
+              onPressed: () {
+                setState(() {
+                  selectionState = !selectionState;
+                  if (!selectionState) {
+                    _selectedContact.clear();
+                  }
+                });
+              },
+              child: Text(
+                "Partager mon nouveau numéro",
+                style: theme.textTheme.button.copyWith(),
+              ),
+            ),
+          ),*/
+        ],
       ),
       body: SafeArea(
         child: Column(
           children: [
             Container(
               decoration: BoxDecoration(
-                  //borderRadius: BorderRadius.all(Radius.circular(this.height / 2)),
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: Colors.blue.withOpacity(0.2),
-                      blurRadius: 5.5 * 4.0,
-                      offset: Offset(0, 0.5 * 4),
-                    ),
-                  ], color: Colors.white),
+                //borderRadius: BorderRadius.all(Radius.circular(this.height / 2)),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.blue.withOpacity(0.2),
+                    blurRadius: 5.5 * 4.0,
+                    offset: Offset(0, 0.5 * 4),
+                  ),
+                ],
+                color: Colors.white,
+              ),
               height: size.height / 4,
               padding: EdgeInsets.all(10),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
+                      Container(
+                        decoration: BoxDecoration(
+                          boxShadow: <BoxShadow>[
+                            BoxShadow(
+                              color: Colors.red.withOpacity(0.2),
+                              blurRadius: 5.5 * 4.0,
+                              offset: Offset(0, 0.5 * 4),
+                            ),
+                          ],
+                          color: Colors.white.withOpacity(0.03),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              "Votre nouveau contact",
+                              style: TextStyle(fontSize: 10),
+                            ),
+                            Text(
+                              "${PhoneUtils.convert(phone)}",
+                              style: Theme.of(context)
+                                  .textTheme
+                                  .headline4
+                                  .copyWith(fontSize: 16, color: Colors.red),
+                            ),
+                          ],
+                        ),
+                      ),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -112,9 +173,23 @@ class _HomeActivityState extends State<HomeActivity> {
                                   }
                                 });
                               },
-                              child: Text(
-                                "${selectionState ? "Annuler" : "Commencer"}",
-                                style: theme.textTheme.button.copyWith(),
+                              child: Row(
+                                children: [
+                                  Visibility(
+                                    visible: !selectionState,
+                                    child: Padding(
+                                      padding: const EdgeInsets.all(4),
+                                      child: Image.asset(
+                                        "res/images/tel.gif",
+                                        scale: 0.2,
+                                      ),
+                                    ),
+                                  ),
+                                  Text(
+                                    "${selectionState ? "Annuler" : "Commencer"}",
+                                    style: theme.textTheme.button.copyWith(),
+                                  ),
+                                ],
                               ),
                             ),
                           ),
@@ -203,48 +278,67 @@ class _HomeActivityState extends State<HomeActivity> {
               child: Container(
                 width: size.width,
                 height: 40,
-                color: Colors.grey,
+                color: Colors.grey.withOpacity(0.6),
                 child: Row(
                   children: [
-                    Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Text(
-                        "${_selectedContact.length} contact(s) selectionné(s)",
-                        style: Theme.of(context).textTheme.headline6.copyWith(
-                              color: Colors.white,
-                              fontSize: 11,
-                              fontWeight: FontWeight.normal,
-                            ),
+                    Expanded(
+                      flex: 6,
+                      child: Padding(
+                        padding: const EdgeInsets.all(8.0),
+                        child: Text(
+                          "${_selectedContact.length} contact(s) selectionné(s)",
+                          style: Theme.of(context).textTheme.headline6.copyWith(
+                                color: Colors.white,
+                                fontSize: 11,
+                                fontWeight: FontWeight.normal,
+                              ),
+                        ),
                       ),
                     ),
-                    FlatButton(
-                      onPressed: () {
-                        print("_contacts.length : ${_contacts.length}");
-                        print(
-                            "_selectedContact.length ${_selectedContact.length}");
+                    Expanded(
+                      flex: 5,
+                      child: FlatButton(
+                        onPressed: () {
+                          print("_contacts.length : ${_contacts.length}");
+                          print(
+                              "_selectedContact.length ${_selectedContact.length}");
 
-                        if (_selectedContact.length == _contacts.length) {
-                          _selectedContact.clear();
-                        } else {
-                          _selectedContact.clear();
-                          _selectedContact.addAll(
-                              _contacts.map((e) => e.identifier).toList());
-                        }
+                          if (_selectedContact.length == _contacts.length) {
+                            _selectedContact.clear();
+                          } else {
+                            _selectedContact.clear();
+                            _selectedContact.addAll(
+                                _contacts.map((e) => e.identifier).toList());
+                          }
 
-                        setState(() {});
-                      },
-                      child: Text(
-                          "${_selectedContact.length != _contacts?.length ?? 0 ? "Tout selectionner" : "déselectionner"}"),
+                          setState(() {});
+                        },
+                        child: Text(
+                          "${_selectedContact.length != _contacts?.length ?? 0 ? "Tout selectionner" : "déselectionner"}",
+                          style: Theme.of(context).textTheme.headline6.copyWith(
+                                fontSize: 14,
+                              ),
+                        ),
+                      ),
                     ),
-                    FlatButton(
-                      onPressed: () {
-                        Navigator.of(context).pushNamed(RouterGenerator.exports,
-                            arguments: _contacts
-                                .where((element) => _selectedContact
-                                    .contains(element.identifier))
-                                .toList());
-                      },
-                      child: Text("Exporter"),
+                    Expanded(
+                      flex: 4,
+                      child: FlatButton(
+                        onPressed: () {
+                          Navigator.of(context).pushNamed(
+                              RouterGenerator.exports,
+                              arguments: _contacts
+                                  .where((element) => _selectedContact
+                                      .contains(element.identifier))
+                                  .toList());
+                        },
+                        child: Text(
+                          "Exporter",
+                          style: Theme.of(context).textTheme.headline6.copyWith(
+                                fontSize: 14,
+                              ),
+                        ),
+                      ),
                     ),
                   ],
                 ),
@@ -326,25 +420,51 @@ class _HomeActivityState extends State<HomeActivity> {
                         );
                       },
                     )
-                  : Center(
-                      child: const CircularProgressIndicator(),
+                  : Stack(
+                      children: [
+                        Positioned(
+                          top: 0,
+                          bottom: 0,
+                          left: 0,
+                          right: 0,
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.black87,
+                            ),
+                          ),
+                        ),
+                        Center(
+                          child: CircularProgressIndicator(),
+                        ),
+                      ],
                     ),
-            )
+            ),
           ],
         ),
       ),
       floatingActionButton: Visibility(
         visible: _selectedContact.length > 0 && selectionState,
         child: FloatingActionButton.extended(
-          label: Text('Convertir'),
+          label: Text(
+            'Convertir',
+            style: TextStyle(
+              color: Colors.white,
+            ),
+          ),
+          backgroundColor: operatorPhone["operator_color"],
           onPressed: () {
-            Navigator.of(context).pushNamed(RouterGenerator.convert,
-                arguments: _contacts
-                    .where((element) =>
-                        _selectedContact.contains(element.identifier))
-                    .toList());
+            Navigator.of(context).pushNamed(
+              RouterGenerator.convert,
+              arguments: _contacts
+                  .where((element) =>
+                      _selectedContact.contains(element.identifier))
+                  .toList(),
+            );
           },
-          icon: Icon(CupertinoIcons.number),
+          icon: Icon(
+            CupertinoIcons.number,
+            color: Colors.white,
+          ),
         ),
       ),
     );

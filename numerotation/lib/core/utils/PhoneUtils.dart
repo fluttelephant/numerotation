@@ -1,11 +1,14 @@
 /*
  * @author Neiba Aristide
  */
+import 'package:flutter/material.dart';
+
 class PhoneUtils {
   static List<dynamic> operatorsNumber = [
     {
       "operator": "Atlantique Telecom CI",
       "operatorAbrev": "Moov",
+      "operator_color": Color(0xFFCCD344),
       "old_initial": [
         "01",
         "02",
@@ -29,6 +32,7 @@ class PhoneUtils {
     {
       "operator": "MTN-CI",
       "operatorAbrev": "MTN",
+      "operator_color": Color(0xFFF6CA45),
       "old_initial": [
         "04",
         "05",
@@ -58,6 +62,7 @@ class PhoneUtils {
     {
       "operator": "ORANGE CI",
       "operatorAbrev": "ORANGE",
+      "operator_color": Color(0xFFED6F2E),
       "old_initial": [
         "07",
         "08",
@@ -86,6 +91,7 @@ class PhoneUtils {
     {
       "operator": "Atlantique Telecom",
       "operatorAbrev": "Moov",
+      "operator_color": Color(0xFFCCD344),
       "old_initial": ["208", "218", "228", "238"],
       "new_initial": "21",
       "type": "Téléphonie Fixe"
@@ -93,6 +99,7 @@ class PhoneUtils {
     {
       "operator": "MTN-CI",
       "operatorAbrev": "MTN",
+      "operator_color": Color(0xFFF6CA45),
       "old_initial": [
         "200",
         "210",
@@ -113,6 +120,7 @@ class PhoneUtils {
     {
       "operator": "ORANGE CI",
       "operatorAbrev": "ORANGE",
+      "operator_color": Color(0xFFED6F2E),
       "old_initial": [
         "202",
         "203",
@@ -159,17 +167,17 @@ class PhoneUtils {
   }
 
   static dynamic determinateOperator(String phoneNumber) {
+    if (phoneNumber.length < 8) return null;
 
-    if(phoneNumber.length<8)
-      return null;
-
-      //check is mobile
+    //check is mobile
 
     String initial = phoneNumber.substring(0, 2);
 
-    List<dynamic> ops = operatorsNumber.where((element) =>
-        element["type"] == "Téléphonie Mobile" &&
-        element["old_initial"].any((i) => i == initial)).toList();
+    List<dynamic> ops = operatorsNumber
+        .where((element) =>
+            element["type"] == "Téléphonie Mobile" &&
+            element["old_initial"].any((i) => i == initial))
+        .toList();
 
     dynamic opMobile = ops != null && ops.isNotEmpty ? ops.first : null;
 
@@ -178,11 +186,20 @@ class PhoneUtils {
     //check is fix
 
     initial = phoneNumber.substring(0, 3);
-    ops = operatorsNumber.where((element) =>
-        element["type"] == "Téléphonie Fixe" &&
-        element["old_initial"].any((i) => i == initial)).toList();
+    ops = operatorsNumber
+        .where((element) =>
+            element["type"] == "Téléphonie Fixe" &&
+            element["old_initial"].any((i) => i == initial))
+        .toList();
 
     dynamic opFixe = ops != null && ops.isNotEmpty ? ops.first : null;
     return opFixe;
+  }
+
+  static String convert(String phone) {
+    phone = normalizeNumber(phone);
+    if (!validateNormalizeOldPhoneNumber(phone)) return null;
+    dynamic operatorFound = determinateOperator(phone);
+    return (operatorFound != null ? operatorFound["new_initial"] : "") + phone;
   }
 }

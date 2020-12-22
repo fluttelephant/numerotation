@@ -87,7 +87,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                               .headline4
                               .copyWith(fontSize: 11, color: Colors.red),
                         ),
-                      )
+                      ),
                     ],
                   ),
                 ],

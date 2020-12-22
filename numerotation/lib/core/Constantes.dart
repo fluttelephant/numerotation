@@ -2,6 +2,7 @@ const String TOKEN = "auth_token_slaywoke#^%561";
 const String BASE_URL = "https://api.numerotation.com/v1";
 const String BASE_URL_STORAGE = "https://numerotation.app.fr/storage/";
 const String storageKey = "numerotationApplication_";
+const String PREF_USER_PHONE_NUMBER = "phone_number";
 const String storageDeviseSuffix = "Devise";
 const String storageDeviceTokenSuffix = "DeviceToken";
 const String storageUserSuffix = "UserConnected";
