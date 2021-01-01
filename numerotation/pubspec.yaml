@@ -33,11 +33,12 @@ dependencies:
   shared_preferences: ^0.5.12+4
 
   path_provider: ^1.6.24
+  google_fonts: ^1.1.1
+  share: ^0.6.5+4
 
   permission_handler: ^5.0.1+1
   contacts_service: ^0.4.6
   url_launcher: ^5.4.2
-  firebase_auth: ^0.18.4+1
 
 dev_dependencies:
   flutter_test:

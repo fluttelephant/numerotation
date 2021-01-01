@@ -166,6 +166,10 @@ class PhoneUtils {
     return phoneNumber.length == 8;
   }
 
+  static bool isNewPhone(String phoneNumber) {
+    return phoneNumber.length == 10;
+  }
+
   static dynamic determinateOperator(String phoneNumber) {
     if (phoneNumber.length < 8) return null;
 

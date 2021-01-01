@@ -25,19 +25,22 @@ class _RoundedCheckBoxState extends State<RoundedCheckBox> {
             height: 20,
             width: 20,
             decoration: BoxDecoration(
-              color: widget.value ? color2 : Colors.grey.withOpacity(0.06),
+              color:
+                  widget.value ? primaryColor.withOpacity(0.2) : primaryColor.withOpacity(0.06),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: widget.value ? color2.shade900 : Colors.grey,
+                color: widget.value ? primaryColor.withOpacity(0.0) : primaryColor,
+                width: 2.0,
               ),
             ),
             child: Visibility(
               visible: widget.value,
               child: Center(
                 child: Icon(
-                  CupertinoIcons.check_mark,
-                  size: 9,
-                  color: Colors.white,
+                  Icons.check,
+                  size: 14,
+                  color: primaryColor,
+
                 ),
               ),
             ),

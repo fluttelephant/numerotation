@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:numerotation/core/App.dart';
+import 'package:numerotation/core/Constantes.dart';
 
 import '../RouterGenerator.dart';
 
@@ -38,7 +40,13 @@ class _SplashScreenActivity extends State<SplashScreenActivity>
     // test user phone saved
 
     //Load profil
-    Navigator.of(context).pushReplacementNamed(RouterGenerator.login);
+
+    if (App.prefs.containsKey(storageKey + PREF_USER_NAME) &&
+        App.prefs.containsKey(storageKey + PREF_USER_PHONE_NUMBER)) {
+      Navigator.of(context).pushReplacementNamed(RouterGenerator.home);
+    } else {
+      Navigator.of(context).pushReplacementNamed(RouterGenerator.login);
+    }
   }
 
   @override

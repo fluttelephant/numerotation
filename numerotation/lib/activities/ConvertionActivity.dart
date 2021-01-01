@@ -1,10 +1,10 @@
 import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:numerotation/core/utils/Backup.dart';
 import 'package:numerotation/core/utils/PhoneUtils.dart';
 import 'package:numerotation/core/utils/theme.dart';
-import 'package:numerotation/shared/RoundedCheckBox.dart';
-import 'package:permission_handler/permission_handler.dart';
+import 'package:numerotation/shared/AppTitleWidget.dart';
 
 class ConvertionActivity extends StatefulWidget {
   final List<Contact> contacts;
@@ -21,6 +21,9 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
   TextEditingController _ctrlSearch = new TextEditingController();
 
   List<String> _selectedContact = [];
+
+  bool processing = false;
+  String textLoading = "...";
 
   @override
   void initState() {
@@ -41,22 +44,29 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
           children: [
             Container(
               decoration: BoxDecoration(
-                  //borderRadius: BorderRadius.all(Radius.circular(this.height / 2)),
-                  boxShadow: <BoxShadow>[
-                    BoxShadow(
-                      color: Colors.blue.withOpacity(0.2),
-                      blurRadius: 5.5 * 4.0,
-                      offset: Offset(0, 0.5 * 4),
-                    ),
-                  ], color: Colors.white),
-              height: size.height / 4,
+                //borderRadius: BorderRadius.all(Radius.circular(this.height / 2)),
+                boxShadow: <BoxShadow>[
+                  BoxShadow(
+                    color: Colors.blue.withOpacity(0.2),
+                    blurRadius: 5.5 * 4.0,
+                    offset: Offset(0, 0.5 * 4),
+                  ),
+                ],
+                color: Colors.white,
+              ),
+              height: size.height / 5,
               padding: EdgeInsets.all(10),
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
+                //mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  Row(
+                    children: [BackButton(), AppTitleWidget()],
+                  ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
+                      Icon(CupertinoIcons.checkmark_shield_fill,
+                          color: Colors.red),
                       Row(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
@@ -64,9 +74,9 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                             "${widget.contacts != null ? widget.contacts.length : "Aucun"} Contacts selectionnés",
                             style:
                                 Theme.of(context).textTheme.headline4.copyWith(
-                                      fontSize: 26,
+                                      fontSize: 22,
                                     ),
-                          )
+                          ),
                         ],
                       ),
                       Container(
@@ -156,10 +166,16 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                                 padding: EdgeInsets.all(5.0),
                                                 margin: EdgeInsets.all(2.0),
                                                 decoration: BoxDecoration(
-                                                  color: (isValideOldNumber
-                                                          ? Colors.blue
-                                                          : Colors.red)
-                                                      .withOpacity(0.5),
+                                                  color: PhoneUtils.isNewPhone(
+                                                              normalizePhoneNumber) &&
+                                                          operator != null
+                                                      ? (operator["operator_color"]
+                                                              as Color)
+                                                          .withOpacity(0.4)
+                                                      : (isValideOldNumber
+                                                              ? Colors.blue
+                                                              : Colors.red)
+                                                          .withOpacity(0.5),
                                                   borderRadius:
                                                       BorderRadius.circular(
                                                           5.0),
@@ -174,13 +190,30 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                                         fontSize: 9,
                                                       ),
                                                     ),
-                                                    Text((operator != null
-                                                            ? operator[
-                                                                "new_initial"]
-                                                            : "") +
-                                                        normalizePhoneNumber),
+                                                    Text(
+                                                      PhoneUtils.isNewPhone(
+                                                              normalizePhoneNumber)
+                                                          ? normalizePhoneNumber
+                                                          : ((operator != null
+                                                                  ? operator[
+                                                                      "new_initial"]
+                                                                  : "") +
+                                                              normalizePhoneNumber),
+                                                    ),
                                                   ],
                                                 ),
+                                              ),
+                                              Visibility(
+                                                child: Container(
+                                                  padding: EdgeInsets.all(5),
+                                                  child: Icon(
+                                                    CupertinoIcons
+                                                        .check_mark_circled_solid,
+                                                    color: Colors.green,
+                                                  ),
+                                                ),
+                                                visible: PhoneUtils.isNewPhone(
+                                                    normalizePhoneNumber),
                                               )
                                             ],
                                           );
@@ -206,23 +239,170 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
           ],
         ),
       ),
-      bottomNavigationBar: BottomAppBar(
-        child: Container(
-          height: 50,
-          color: secondaryColor,
-          child: InkWell(
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Text(
-                  "Enregistrer",
-                  style: theme.textTheme.headline4.copyWith(
-                    fontSize: 20.0,
-                    color: Colors.black,
-                  ),
-                ),
-              ],
+      bottomNavigationBar: Visibility(
+        visible: !widget.contacts.every(
+            (e) => e.phones.every((p) => PhoneUtils.isNewPhone(p.value))),
+        child: BottomAppBar(
+          child: Container(
+            height: 50,
+            //color: secondaryColor,
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [primaryColor, Colors.blueAccent],
+              ),
             ),
+            child: processing
+                ? Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [Text("$textLoading ...")],
+                  )
+                : InkWell(
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          CupertinoIcons.capslock_fill,
+                          color: Colors.white,
+                        ),
+                        SizedBox(
+                          width: 10.0,
+                        ),
+                        Text(
+                          "Enregistrer",
+                          style: theme.textTheme.headline4.copyWith(
+                            fontSize: 20.0,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                    onTap: () async {
+                      bool result = await showDialog(
+                        context: context,
+                        builder: (_) {
+                          return AlertDialog(
+                            backgroundColor: Colors.transparent,
+                            //.withOpacity(0.2),
+                            contentPadding: EdgeInsets.all(0.0),
+                            content: Container(
+                              height: size.height * 0.30,
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(20.0),
+                              ),
+                              //padding: EdgeInsets.all(10.0),
+                              child: Column(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Container(
+                                    width: size.width,
+                                    padding: EdgeInsets.all(20),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.1),
+                                      borderRadius: BorderRadius.vertical(
+                                        top: Radius.circular(20.0),
+                                      ),
+                                    ),
+                                    child: Center(
+                                      child: Text(
+                                        "Attention !!",
+                                        style:
+                                            theme.textTheme.headline4.copyWith(
+                                          color: Colors.red[900],
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                  Container(
+                                    padding: EdgeInsets.all(20),
+                                    child: Center(
+                                      child: Column(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                              "Si vous décidez de continuer vos contacts sélectionnés vont être remplacés par leurs nouveaux formats."),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      FlatButton(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: Text("Annuler"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop(false);
+                                        },
+                                      ),
+                                      FlatButton(
+                                        shape: RoundedRectangleBorder(
+                                          borderRadius:
+                                              BorderRadius.circular(20),
+                                        ),
+                                        child: Text("Continuer"),
+                                        onPressed: () {
+                                          Navigator.of(context).pop(true);
+                                        },
+                                      )
+                                    ],
+                                  ),
+                                ],
+                              ),
+                            ),
+                          );
+                        },
+                      );
+                      if (result != null && !!result) {
+                        setState(() {
+                          processing = true;
+                        });
+                        setState(() {
+                          textLoading = "Sauvegarde des contacts à convertir";
+                        });
+                        await Backup.writeContact(widget.contacts);
+                        setState(() {
+                          textLoading = "Conversion";
+                        });
+
+                        for (Contact c in widget.contacts) {
+                          setState(() {
+                            textLoading =
+                                "${c.displayName ?? c.familyName ?? c.givenName ?? c.middleName}";
+                          });
+                          List<Item> items = new List();
+                          for (Item i in c.phones) {
+                            String normalizePhoneNumber =
+                                PhoneUtils.normalizeNumber(i.value);
+                            bool isValideOldNumber =
+                                PhoneUtils.validateNormalizeOldPhoneNumber(
+                                    normalizePhoneNumber);
+                            if (isValideOldNumber) {
+                              String newPhone =
+                                  PhoneUtils.convert(normalizePhoneNumber);
+                              i.value = newPhone;
+                            }
+                            items.add(i);
+                          }
+                          c.phones = items;
+                          await ContactsService.deleteContact(c);
+                          await ContactsService.addContact(c);
+                        }
+
+                        setState(() {
+                          processing = false;
+                        });
+                      }
+                    },
+                  ),
           ),
         ),
       ),

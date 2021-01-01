@@ -1,5 +1,6 @@
 import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
+import 'package:numerotation/activities/AboutActivity.dart';
 import 'package:numerotation/activities/ExportScreenActivity.dart';
 import 'package:numerotation/activities/FeaturesListActivity.dart';
 import 'package:numerotation/activities/HomeActivity.dart';
@@ -22,6 +23,7 @@ class RouterGenerator {
   static const home = 'home';
   static const convert = 'convert';
   static const exports = 'exports';
+  static const about = 'about';
 
   static const featuresList = 'features-list';
 
@@ -43,6 +45,8 @@ class RouterGenerator {
       case convert:
         List<Contact> contacts = args;
         return MaterialPageRoute(builder: (_) => ConvertionActivity(contacts));
+      case about:
+         return MaterialPageRoute(builder: (_) => AboutActivity());
       case exports:
         List<Contact> contacts = args;
         return MaterialPageRoute(builder: (_) => ExportScreenActivity(contacts:contacts));
