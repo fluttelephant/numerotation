@@ -97,9 +97,12 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
     Size size = MediaQuery.of(context).size;
 
     var theme = Theme.of(context);
+    String phonesString =
+        App.prefs.getString(storageKey + PREF_USER_PHONE_NUMBER);
 
-    List<String> phones =
-        App.prefs.getString(storageKey + PREF_USER_PHONE_NUMBER).split(";");
+    print("phonesString $phonesString ${phonesString.length}");
+    List<String> phones = phonesString == null || phonesString.length==0 ? [] : phonesString.split(";");
+
 
     List<dynamic> operatorPhone =
         phones.map((e) => PhoneUtils.determinateOperator(e)).toList();
@@ -434,16 +437,19 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                       MainAxisAlignment.spaceBetween,
                                   children: [
                                     Text(
-                                      "${phone}",
-                                      style: TextStyle(fontSize: 10),
+                                      "${PhoneUtils.addIndicatifNumber(phone)}",
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        decoration: TextDecoration.lineThrough,
+                                      ),
                                     ),
                                     Text(
-                                      "${PhoneUtils.convert(phone)}",
+                                      "${PhoneUtils.addIndicatifNumber(PhoneUtils.convert(phone))}",
                                       style: Theme.of(context)
                                           .textTheme
                                           .headline4
                                           .copyWith(
-                                              fontSize: 16,
+                                              fontSize: 14,
                                               color: Colors.black),
                                     ),
                                     Container(
@@ -503,7 +509,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                             //.withOpacity(0.2),
                                             contentPadding: EdgeInsets.all(0.0),
                                             content: Container(
-                                                height: size.height * 0.38,
+                                                height: size.height * 0.40,
                                                 decoration: BoxDecoration(
                                                   color: Colors.white,
                                                   borderRadius:
@@ -590,17 +596,19 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                                                   (value) {
                                                                 setState(
                                                                   () {
-                                                                    phoneValide =
+                                                                    String
+                                                                        normePhone =
                                                                         PhoneUtils
-                                                                            .validateNormalizeOldPhoneNumber(
+                                                                            .normalizeNumber(
                                                                       e.text,
                                                                     );
+                                                                    phoneValide =
+                                                                        PhoneUtils.validateNormalizeOldPhoneNumber(
+                                                                            normePhone);
                                                                     if (phoneValide) {
                                                                       operator =
-                                                                          PhoneUtils
-                                                                              .determinateOperator(
-                                                                        e.text,
-                                                                      );
+                                                                          PhoneUtils.determinateOperator(
+                                                                              normePhone);
                                                                     }
                                                                   },
                                                                 );
@@ -612,54 +620,55 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                                             Visibility(
                                                               child: Column(
                                                                 children: [
-                                                                  Row(
-                                                                    children: [
-                                                                      Container(
-                                                                        decoration:
-                                                                            BoxDecoration(
-                                                                          color:
-                                                                              (operator == null || operator["operator_color"] == null ? Colors.blue : (operator["operator_color"] as Color)).withOpacity(
-                                                                            0.4,
-                                                                          ),
-                                                                          borderRadius:
-                                                                              BorderRadius.circular(
+                                                                  Container(
+                                                                    decoration:
+                                                                        BoxDecoration(
+                                                                      color: (operator == null || operator["operator_color"] == null
+                                                                              ? Colors.blue
+                                                                              : (operator["operator_color"] as Color))
+                                                                          .withOpacity(
+                                                                        0.4,
+                                                                      ),
+                                                                      borderRadius:
+                                                                          BorderRadius
+                                                                              .circular(
+                                                                        10.0,
+                                                                      ),
+                                                                    ),
+                                                                    padding:
+                                                                        EdgeInsets.all(
+                                                                            3.0),
+                                                                    margin: EdgeInsets
+                                                                        .all(
+                                                                            2.0),
+                                                                    child: Text(
+                                                                      "${operator["operator"]}",
+                                                                      style:
+                                                                          TextStyle(
+                                                                        color: Colors
+                                                                            .black,
+                                                                        fontWeight:
+                                                                            FontWeight.bold,
+                                                                        fontSize:
                                                                             10.0,
-                                                                          ),
-                                                                        ),
-                                                                        padding:
-                                                                            EdgeInsets.all(3.0),
-                                                                        margin:
-                                                                            EdgeInsets.all(2.0),
-                                                                        child:
-                                                                            Text(
-                                                                          "${operator["operator"]}",
-                                                                          style:
-                                                                              TextStyle(
-                                                                            color:
-                                                                                Colors.black,
-                                                                            fontWeight:
-                                                                                FontWeight.bold,
-                                                                            fontSize:
-                                                                                10.0,
-                                                                          ),
-                                                                        ),
                                                                       ),
-                                                                      Text(
-                                                                        "${PhoneUtils.convert(e.text)}",
-                                                                        style:
-                                                                            TextStyle(
-                                                                          color:
-                                                                              Colors.black,
-                                                                          fontWeight:
-                                                                              FontWeight.bold,
-                                                                          fontSize:
-                                                                              24,
-                                                                        ),
-                                                                      ),
-                                                                    ],
+                                                                    ),
+                                                                  ),
+                                                                  Text(
+                                                                    "${PhoneUtils.convert(e.text)}",
+                                                                    style:
+                                                                        TextStyle(
+                                                                      color: Colors
+                                                                          .black,
+                                                                      fontWeight:
+                                                                          FontWeight
+                                                                              .bold,
+                                                                      fontSize:
+                                                                          24,
+                                                                    ),
                                                                   ),
                                                                   SizedBox(
-                                                                    height: 10,
+                                                                    height: 5,
                                                                   ),
                                                                   Container(
                                                                     height: 60,
@@ -695,7 +704,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                                                       onPressed:
                                                                           () {
                                                                         Share.share(
-                                                                            'Bonjour ce contact : ${e.text} est désormais ${PhoneUtils.convert(e.text)}');
+                                                                            'Bonjour ce contact : ${e.text} est désormais ${PhoneUtils.addIndicatifNumber(PhoneUtils.convert(e.text))}');
                                                                         Navigator.of(context)
                                                                             .pop();
                                                                       },
@@ -734,6 +743,51 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                     Text(
                                       "${allTranslations.text("label_quick_conversion")}",
                                       textAlign: TextAlign.center,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 100,
+                            padding: EdgeInsets.all(10.0),
+                            margin: EdgeInsets.only(left: 14),
+                            decoration: BoxDecoration(
+                              boxShadow: <BoxShadow>[
+                                BoxShadow(
+                                  color: Colors.red.withOpacity(0.0002),
+                                  blurRadius: 5.5 * 1.0,
+                                  offset: Offset(0, 0.5 * 2),
+                                ),
+                              ],
+                              borderRadius: BorderRadius.circular(10),
+                              gradient: LinearGradient(
+                                colors: [Colors.indigo, Colors.deepPurple],
+                              ),
+                            ),
+                            child: InkWell(
+                              onTap: () {
+                                Navigator.of(context).pushNamed(RouterGenerator.backTo8);
+                              },
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      child: Icon(Icons.restore),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(
+                                          50,
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.all(10),
+                                    ),
+                                    Text(
+                                      "Revenir de 10 à 8 chiffres",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.white),
                                     ),
                                   ],
                                 ),
@@ -1063,7 +1117,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                   ),
                   onTap: () {
                     Share.share(
-                        'Télécharge l\'application Passea10 et convertir tes numéro en un click ! https://example.com');
+                        'Télécharge l\'application Passe à 10 et converti tes contacts en un click ! https://play.google.com/store/apps/details?id=com.flutter.fute.numerotation');
                   },
                 ),
                 ListTile(

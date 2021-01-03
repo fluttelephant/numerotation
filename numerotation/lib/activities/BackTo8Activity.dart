@@ -5,20 +5,21 @@ import 'package:numerotation/core/utils/Backup.dart';
 import 'package:numerotation/core/utils/PhoneUtils.dart';
 import 'package:numerotation/core/utils/theme.dart';
 import 'package:numerotation/shared/AppTitleWidget.dart';
+import 'package:permission_handler/permission_handler.dart';
 
-class ConvertionActivity extends StatefulWidget {
-  final List<Contact> contacts;
-
-  const ConvertionActivity(this.contacts, {Key key}) : super(key: key);
+class BackTo8Activity extends StatefulWidget {
+  const BackTo8Activity({Key key}) : super(key: key);
 
   @override
-  _ConvertionActivityState createState() => _ConvertionActivityState();
+  _BackTo8ActivityState createState() => _BackTo8ActivityState();
 }
 
-class _ConvertionActivityState extends State<ConvertionActivity> {
+class _BackTo8ActivityState extends State<BackTo8Activity> {
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   TextEditingController _ctrlSearch = new TextEditingController();
+  List<Contact> _contactsAll;
+  List<Contact> _contacts;
 
   List<String> _selectedContact = [];
 
@@ -28,13 +29,44 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
 
   DateTime febrary2021 = DateTime.tryParse("2021-02-01 00:00:00Z");
 
-  @override
-  void initState() {
-    convert();
-    super.initState();
+  Future<void> getContacts() async {
+    setState(() {
+      _contacts = null;
+      _selectedContact = [];
+      _contactsAll = [];
+    });
+    if (await Permission.contacts.request().isGranted) {
+      //We already have permissions for contact when we get to this page, so we
+      // are now just retrieving it
+      Iterable<Contact> contactsAll = await ContactsService.getContacts(
+        withThumbnails: false,
+      );
+      Iterable<Contact> contacts = contactsAll;
+      if (contacts.isNotEmpty) {
+        contacts = contacts
+            .where((element) =>
+                element.phones.isNotEmpty &&
+                element.phones.any((phone) =>
+                    (phone.value.contains("+225") &&
+                        phone.value.replaceAll(" ", "").trim().length == 13) ||
+                    (phone.value.contains("00225") &&
+                        phone.value.replaceAll(" ", "").trim().length == 14) ||
+                    //!phone.value.contains("+") ||
+                    phone.value.replaceAll(" ", "").trim().length == 10))
+            .toList();
+      }
+      setState(() {
+        _contacts = contacts;
+        _contactsAll = contacts;
+      });
+    }
   }
 
-  Future<void> convert() async {}
+  @override
+  void initState() {
+    getContacts();
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -63,7 +95,16 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                 //mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Row(
-                    children: [BackButton(), AppTitleWidget()],
+                    children: [
+                      BackButton(),
+                      Text(
+                        "Passe à 8",
+                        style: TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    ],
                   ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -74,7 +115,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
                           Text(
-                            "${widget.contacts != null ? widget.contacts.length : "Aucun"} Contacts selectionnés",
+                            "${_contacts != null ? _contacts.length : "Aucun"} contacts selectionnés",
                             style:
                                 Theme.of(context).textTheme.headline4.copyWith(
                                       fontSize: 22,
@@ -107,13 +148,13 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
               ),
             ),
             Expanded(
-              child: widget.contacts != null
+              child: _contacts != null && !processing
                   //Build a list view of all contacts, displaying their avatar and
                   // display name
                   ? ListView.builder(
-                      itemCount: widget.contacts?.length ?? 0,
+                      itemCount: _contacts?.length ?? 0,
                       itemBuilder: (BuildContext context, int index) {
-                        Contact contact = widget.contacts?.elementAt(index);
+                        Contact contact = _contacts?.elementAt(index);
                         return InkWell(
                           child: Row(
                             children: [
@@ -147,9 +188,12 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                     children: [
                                       ...contact.phones.map(
                                         (Item phone) {
-
-                                          //check if ivorian phone number
-
+                                          bool isIvPhoneNumber =
+                                              PhoneUtils.isIvorianPhone(
+                                                  phone.value);
+                                          bool isNewIvPhoneNumber =
+                                              PhoneUtils.isIvorianNewPhone(
+                                                  phone.value);
 
                                           String normalizePhoneNumber =
                                               PhoneUtils.normalizeNumber(
@@ -173,59 +217,54 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                                           : "") +
                                                       normalizePhoneNumber));
 
-                                          return Row(
-                                            children: [
-                                              Text(phone.value),
-                                              Icon(
-                                                CupertinoIcons.arrow_right,
-                                                size: 9,
-                                              ),
-                                              Container(
-                                                padding: EdgeInsets.all(5.0),
-                                                margin: EdgeInsets.all(2.0),
-                                                decoration: BoxDecoration(
-                                                  color: PhoneUtils.isNewPhone(
-                                                              normalizePhoneNumber) &&
-                                                          operator != null
-                                                      ? (operator["operator_color"]
-                                                              as Color)
-                                                          .withOpacity(0.4)
-                                                      : (isValideOldNumber
-                                                              ? Colors.blue
-                                                              : Colors.red)
-                                                          .withOpacity(0.5),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          5.0),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
+                                          return !isIvPhoneNumber || !isNewIvPhoneNumber
+                                              ? Row(children: [
+
+                                                ])
+                                              : Row(
                                                   children: [
-                                                    Text(
-                                                      "${operator != null ? operator["operator"] : "Inconnu"}",
-                                                      style: TextStyle(
-                                                        fontSize: 9,
+                                                    Container(
+                                                      padding:
+                                                          EdgeInsets.all(5.0),
+                                                      margin:
+                                                          EdgeInsets.all(2.0),
+                                                      decoration: BoxDecoration(
+                                                        color: PhoneUtils
+                                                                    .isNewPhone(
+                                                                        normalizePhoneNumber) &&
+                                                                operator != null
+                                                            ? (operator["operator_color"]
+                                                                    as Color)
+                                                                .withOpacity(
+                                                                    0.4)
+                                                            : (isValideOldNumber
+                                                                    ? Colors
+                                                                        .blue
+                                                                    : Colors
+                                                                        .red)
+                                                                .withOpacity(
+                                                                    0.5),
+                                                        borderRadius:
+                                                            BorderRadius
+                                                                .circular(5.0),
+                                                      ),
+                                                      child: Column(
+                                                        crossAxisAlignment:
+                                                            CrossAxisAlignment
+                                                                .start,
+                                                        children: [
+                                                          Text(
+                                                            "${operator != null ? operator["operator"] : "Inconnu"}",
+                                                            style: TextStyle(
+                                                              fontSize: 9,
+                                                            ),
+                                                          ),
+                                                          Text("${phoneIv}"),
+                                                        ],
                                                       ),
                                                     ),
-                                                    Text("${phoneIv}"),
                                                   ],
-                                                ),
-                                              ),
-                                              Visibility(
-                                                child: Container(
-                                                  padding: EdgeInsets.all(5),
-                                                  child: Icon(
-                                                    CupertinoIcons
-                                                        .check_mark_circled_solid,
-                                                    color: Colors.green,
-                                                  ),
-                                                ),
-                                                visible: PhoneUtils.isNewPhone(
-                                                    normalizePhoneNumber),
-                                              )
-                                            ],
-                                          );
+                                                );
                                         },
                                       )
                                     ],
@@ -249,17 +288,16 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
         ),
       ),
       bottomNavigationBar: Visibility(
-        visible: !widget.contacts.every(
-            (e) => e.phones.every((p) => PhoneUtils.isNewPhone(p.value))),
+        visible: _contacts != null,
         child: BottomAppBar(
           child: Container(
             height: 50,
             //color: secondaryColor,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors:febrary2021.isBefore(DateTime.now()) || isActiveSaved?
-                [primaryColor, Colors.blueAccent]:
-                [Colors.red, Colors.red[700]],
+                colors: febrary2021.isAfter(DateTime.now()) || isActiveSaved
+                    ? [primaryColor, Colors.blueAccent]
+                    : [Colors.red, Colors.red[700]],
               ),
             ),
             child: processing
@@ -268,19 +306,19 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                     children: [Text("$textLoading ...")],
                   )
                 : InkWell(
-                    child: febrary2021.isBefore(DateTime.now()) || isActiveSaved
+                    child: febrary2021.isAfter(DateTime.now()) || isActiveSaved
                         ? Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Icon(
-                                CupertinoIcons.capslock_fill,
+                                Icons.settings_backup_restore,
                                 color: Colors.white,
                               ),
                               SizedBox(
                                 width: 10.0,
                               ),
                               Text(
-                                "Enregistrer",
+                                "Revenir à 8 chiffre",
                                 style: theme.textTheme.headline4.copyWith(
                                   fontSize: 20.0,
                                   color: Colors.white,
@@ -294,7 +332,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  "Il est préférable de faire la conversion le 1 février 2021... Tapez deux fois pour activer le bouton d'enregistrement  ",
+                                  "Il est préférable de laisser les contacts déjà convertis à 10 chiffres après le 1 février 2021... Tapez deux fois pour activer le bouton d'enregistrement  ",
                                   style: theme.textTheme.headline4.copyWith(
                                     fontSize: 14.0,
                                     color: Colors.white,
@@ -304,7 +342,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                               ),
                             ],
                           ),
-                    onTap: febrary2021.isBefore(DateTime.now()) || isActiveSaved
+                    onTap: febrary2021.isAfter(DateTime.now()) || isActiveSaved
                         ? () async {
                             bool result = await showDialog(
                               context: context,
@@ -399,28 +437,33 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                 textLoading =
                                     "Sauvegarde des contacts à convertir";
                               });
-                              await Backup.writeContact(widget.contacts);
+                              await Backup.writeContact(_contacts);
                               setState(() {
                                 textLoading = "Conversion";
                               });
 
-                              for (Contact c in widget.contacts) {
+                              for (Contact c in _contacts) {
                                 setState(() {
                                   textLoading =
                                       "${c.displayName ?? c.familyName ?? c.givenName ?? c.middleName}";
                                 });
                                 List<Item> items = new List();
                                 for (Item i in c.phones) {
-                                  String normalizePhoneNumber =
-                                      PhoneUtils.normalizeNumber(i.value);
-                                  bool isValideOldNumber = PhoneUtils
-                                      .validateNormalizeOldPhoneNumber(
-                                          normalizePhoneNumber);
-                                  if (isValideOldNumber) {
-                                    String newPhone = PhoneUtils.convert(
+                                  bool isNewPhoneNumber = PhoneUtils
+                                      .isIvorianNewPhone(i.value);
+                                  print("${i.value} --> $isNewPhoneNumber");
+                                  if(isNewPhoneNumber){
+                                    setState(() {
+                                      textLoading = "reverse ${i.value}";
+                                    });
+                                    String normalizePhoneNumber =
+                                    PhoneUtils.normalizeNumber(i.value);
+                                    String newPhone = PhoneUtils.reverse(
                                         normalizePhoneNumber);
                                     i.value = newPhone;
+                                    print("$normalizePhoneNumber --> $newPhone");
                                   }
+
                                   items.add(i);
                                 }
                                 c.phones = items;
@@ -431,7 +474,6 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                               setState(() {
                                 processing = false;
                               });
-
 
                               await showDialog(
                                 context: context,
@@ -480,14 +522,14 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                                 CrossAxisAlignment.center,
                                                 children: [
                                                   Text(
-                                                      "Vos contacts ont été convertis à 10 chiffres"),
+                                                      "Vos contacts ont été remis à 8 chiffres"),
                                                 ],
                                               ),
                                             ),
                                           ),
                                           Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                            MainAxisAlignment.center,
                                             children: [
 
                                               FlatButton(

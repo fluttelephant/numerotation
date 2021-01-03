@@ -1,6 +1,7 @@
 import 'package:contacts_service/contacts_service.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/activities/AboutActivity.dart';
+import 'package:numerotation/activities/BackTo8Activity.dart';
 import 'package:numerotation/activities/ExportScreenActivity.dart';
 import 'package:numerotation/activities/FeaturesListActivity.dart';
 import 'package:numerotation/activities/HomeActivity.dart';
@@ -21,6 +22,7 @@ class RouterGenerator {
   static const register = 'register';
   static const forgetPassword = 'forget-password';
   static const home = 'home';
+  static const backTo8 = 'back-to8';
   static const convert = 'convert';
   static const exports = 'exports';
   static const about = 'about';
@@ -40,6 +42,8 @@ class RouterGenerator {
       case home:
         int position = args == null || !(args is int) ? 0 : args;
         return MaterialPageRoute(builder: (_) => HomeActivity());
+      case backTo8:
+         return MaterialPageRoute(builder: (_) => BackTo8Activity());
       case featuresList:
         return MaterialPageRoute(builder: (_) => FeaturesListActivity());
       case convert:

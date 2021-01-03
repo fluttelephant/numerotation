@@ -24,7 +24,7 @@
   "help_valid_contact": "Les contacts valide sont ceux qui on l'indicatif 225 ( +225 , 00225 )",
   "help_contact_valid_title": "Contacts valides",
   "placeholder_search_input": "Rechercher par nom ou par numéro",
-  "btn_add_contact": "Ajouter un contact",
+  "btn_add_contact": "Ajouter votre propre contact",
   "error_phone_too_short": "Numéro trop court",
   "error_invalid_phone": "Numéro de téléphone invalide",
   "error_unknown_operator" : "Opérateur inconnu",

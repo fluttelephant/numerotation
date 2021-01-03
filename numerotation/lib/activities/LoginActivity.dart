@@ -20,6 +20,7 @@ class _LoginActivityState extends State<LoginActivity> {
   GlobalKey<ScaffoldState> _scaffoldKey = new GlobalKey<ScaffoldState>();
 
   TextEditingController _ctr_phone = new TextEditingController();
+  TextEditingController ctr_userName = new TextEditingController();
   String userPhone = null;
   String userContactName = null;
 
@@ -88,11 +89,11 @@ class _LoginActivityState extends State<LoginActivity> {
                                     ),
                           ),
                           Text(
-                            "Connectez-vous a votre outils de migration",
+                            "Entrez un pseudonyme et aussi vos propres contacts si vous désirez les partager à vos proches après conversion.",
                             style:
                                 Theme.of(context).textTheme.headline4.copyWith(
                                       color: primaryColor,
-                                      fontSize: 22,
+                                      fontSize: 18,
                                     ),
                             textAlign: TextAlign.center,
                           ),
@@ -108,6 +109,7 @@ class _LoginActivityState extends State<LoginActivity> {
                             ? IdentityStepWidget(
                                 scaffoldKey: _scaffoldKey,
                                 theme: theme,
+                                ctr_userName: ctr_userName,
                                 userNameChange: (value) {
                                   setState(() {
                                     userContactName = value;
@@ -141,16 +143,17 @@ class _LoginActivityState extends State<LoginActivity> {
 }
 
 class IdentityStepWidget extends StatelessWidget {
-  IdentityStepWidget({
-    Key key,
-    @required this.userNameChange,
-    @required GlobalKey<ScaffoldState> scaffoldKey,
-    @required this.theme,
-  })  : _scaffoldKey = scaffoldKey,
+  IdentityStepWidget(
+      {Key key,
+      @required this.userNameChange,
+      @required GlobalKey<ScaffoldState> scaffoldKey,
+      @required this.theme,
+      @required this.ctr_userName})
+      : _scaffoldKey = scaffoldKey,
         super(key: key);
 
   final Function userNameChange;
-  TextEditingController _ctr_userName = TextEditingController();
+  final TextEditingController ctr_userName; //= TextEditingController();
   final GlobalKey<ScaffoldState> _scaffoldKey;
   final ThemeData theme;
 
@@ -183,7 +186,7 @@ class IdentityStepWidget extends StatelessWidget {
               filled: true,
             ),
             keyboardType: TextInputType.text,
-            controller: _ctr_userName,
+            controller: ctr_userName,
           ),
           Padding(
             padding: const EdgeInsets.all(8.0),
@@ -200,8 +203,8 @@ class IdentityStepWidget extends StatelessWidget {
                     onPressed: () {
                       // valider le numéro
 
-                      if (_ctr_userName.text.isEmpty ||
-                          _ctr_userName.text.length < 2) {
+                      if (ctr_userName.text.isEmpty ||
+                          ctr_userName.text.length < 2) {
                         _scaffoldKey.currentState.showSnackBar(
                           new SnackBar(
                             content: Text("Nom trop court"),
@@ -212,9 +215,9 @@ class IdentityStepWidget extends StatelessWidget {
                       }
 
                       App.prefs.setString(
-                          storageKey + PREF_USER_NAME, _ctr_userName.text);
+                          storageKey + PREF_USER_NAME, ctr_userName.text);
 
-                      this.userNameChange(_ctr_userName.text);
+                      this.userNameChange(ctr_userName.text);
                     },
                     child: Text(
                       "Suivant",
@@ -252,13 +255,16 @@ class PhonesStepWidget extends StatefulWidget {
 
 class _PhonesStepWidgetState extends State<PhonesStepWidget> {
   List<TextEditingController> ctr_phones = new List();
+  List<FocusNode> myFocusNodes = new List();
 
   @override
   void initState() {
     // TODO: implement initState
     super.initState();
     TextEditingController _ctr_phone = TextEditingController();
-    ctr_phones.add(_ctr_phone);
+    //ctr_phones.add(_ctr_phone);
+    FocusNode fs = new FocusNode();
+    myFocusNodes.add(fs);
   }
 
   @override
@@ -282,42 +288,57 @@ class _PhonesStepWidgetState extends State<PhonesStepWidget> {
                 ),
           ),
           ...ctr_phones.map(
-            (e) => Column(
-              children: [
-                TextField(
-                  decoration: InputDecoration(
-                    contentPadding: EdgeInsets.symmetric(horizontal: 10),
-                    prefixIcon: Icon(CupertinoIcons.phone),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(20),
-                      gapPadding: 0.0,
-                      borderSide: BorderSide(
-                        color: primaryColor,
+            (e) {
+              int index = ctr_phones.indexOf(e);
+              return Column(
+                children: [
+                  TextField(
+                    decoration: InputDecoration(
+                      contentPadding: EdgeInsets.symmetric(horizontal: 10),
+                      prefixIcon: Icon(CupertinoIcons.phone),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(20),
+                        gapPadding: 0.0,
+                        borderSide: BorderSide(
+                          color: primaryColor,
+                        ),
                       ),
+                      hintText:
+                          "${allTranslations.text("placeholder_phone_number_input")}",
+                      fillColor: secondaryColor.withOpacity(0.02),
+                      filled: true,
+                      suffixIcon: ctr_phones.indexOf(e) > 0 &&
+                              ctr_phones.indexOf(e) == ctr_phones.length - 1
+                          ? IconButton(
+                              icon: Icon(CupertinoIcons.minus),
+                              onPressed: ctr_phones.indexOf(e) > 0
+                                  ? () {
+                                      print(e.text);
+
+                                      int index = ctr_phones.indexOf(e);
+                                      if (index > 0) {
+                                        ctr_phones.remove(e);
+
+                                        myFocusNodes.removeAt(index);
+                                        //FocusScope.of(context).unfocus();
+                                        FocusScope.of(context)
+                                            .requestFocus(FocusNode());
+                                      }
+                                    }
+                                  : null,
+                            )
+                          : Icon(CupertinoIcons.phone_badge_plus),
                     ),
-                    hintText: "${allTranslations.text("placeholder_phone_number_input")}",
-                    fillColor: secondaryColor.withOpacity(0.02),
-                    filled: true,
-                    suffixIcon: IconButton(
-                      icon: Icon(CupertinoIcons.minus),
-                      onPressed: ctr_phones.indexOf(e) != 0
-                          ? () {
-                              print(e.text);
-                              if (ctr_phones.indexOf(e) != 0) {
-                                ctr_phones.remove(e);
-                              }
-                            }
-                          : null,
-                    ),
+                    keyboardType: TextInputType.phone,
+                    controller: e,
+                    focusNode: myFocusNodes[index],
                   ),
-                  keyboardType: TextInputType.phone,
-                  controller: e,
-                ),
-                SizedBox(
-                  height: 20,
-                ),
-              ],
-            ),
+                  SizedBox(
+                    height: 20,
+                  ),
+                ],
+              );
+            },
           ),
           SizedBox(
             height: 20,
@@ -345,8 +366,14 @@ class _PhonesStepWidgetState extends State<PhonesStepWidget> {
                     if (ctr_phones.length < 3) {
                       TextEditingController _ctr_phone =
                           TextEditingController();
+
                       ctr_phones.add(_ctr_phone);
+
+                      FocusNode fs = new FocusNode();
+                      myFocusNodes.add(fs);
+
                       setState(() {});
+                      fs.requestFocus();
                     }
                   }
                 : null,
@@ -376,13 +403,13 @@ class _PhonesStepWidgetState extends State<PhonesStepWidget> {
                             controller.text.length < 8) {
                           widget._scaffoldKey.currentState.showSnackBar(
                             new SnackBar(
-                              content: Text("${allTranslations.text("error_phone_too_short")}"),
+                              content: Text(
+                                  "${allTranslations.text("error_phone_too_short")}"),
                               backgroundColor: Colors.red,
                             ),
                           );
                           return;
                         }
-
 
                         String normalizePhoneNumber =
                             PhoneUtils.normalizeNumber(controller.text);
@@ -396,7 +423,8 @@ class _PhonesStepWidgetState extends State<PhonesStepWidget> {
                         if (!validatePhone) {
                           widget._scaffoldKey.currentState.showSnackBar(
                             new SnackBar(
-                              content: Text("${allTranslations.text("error_invalid_phone")}"),
+                              content: Text(
+                                  "${allTranslations.text("error_invalid_phone")}"),
                               backgroundColor: Colors.red,
                             ),
                           );
@@ -410,18 +438,19 @@ class _PhonesStepWidgetState extends State<PhonesStepWidget> {
                           widget._scaffoldKey.currentState.showSnackBar(
                             // "error_unknown_operator" : "Opérateur inconnu"
                             new SnackBar(
-                              content: Text("${allTranslations.text("error_unknown_operator")}"),
+                              content: Text(
+                                  "${allTranslations.text("error_unknown_operator")}"),
                               backgroundColor: Colors.red,
                             ),
                           );
                           return;
                         }
-                        widget._scaffoldKey.currentState.showSnackBar(
+                        /*widget._scaffoldKey.currentState.showSnackBar(
                           new SnackBar(
                             content: Text(operatorPhone["operator"]),
                             backgroundColor: operatorPhone["operator_color"],
                           ),
-                        );
+                        );*/
                         phones.add(normalizePhoneNumber);
                       }
 
@@ -445,6 +474,16 @@ class _PhonesStepWidgetState extends State<PhonesStepWidget> {
       )),
     );
   }
+
+  @override
+  void dispose() {
+    // Clean up the focus node when the Form is disposed.
+    myFocusNodes.forEach((e) {
+      e.dispose();
+    });
+
+    super.dispose();
+  }
 }
 
 class AlreadyPhoneExistWidget extends StatelessWidget {
@@ -454,6 +493,7 @@ class AlreadyPhoneExistWidget extends StatelessWidget {
   const AlreadyPhoneExistWidget(
       {Key key, @required this.userPhone, @required this.theme})
       : super(key: key);
+
   @override
   Widget build(BuildContext context) {
     return Column(

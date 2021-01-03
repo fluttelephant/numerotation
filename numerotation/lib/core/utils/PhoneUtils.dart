@@ -162,8 +162,48 @@ class PhoneUtils {
     return value;
   }
 
+  static String addIndicatifNumber(String number) {
+    String value = number.replaceAll(" ", "").trim();
+    if (value.contains("+225") && value.indexOf("+225") == 0) return value;
+    if (value.contains("00225") && value.indexOf("00225") == 0) return value;
+    return "+225" + value;
+  }
+
   static bool validateNormalizeOldPhoneNumber(String phoneNumber) {
     return phoneNumber.length == 8;
+  }
+
+  static bool isIvorianPhone(String phoneNumber) {
+    return isIvorianOldPhone(phoneNumber) || isIvorianNewPhone(phoneNumber);
+  }
+
+  static bool isIvorianOldPhone(String phoneNumber) {
+    return (phoneNumber.length == 8 &&
+            !phoneNumber.contains("+") &&
+            !(phoneNumber.contains("00225") &&
+                phoneNumber.indexOf("00225") == 0)) ||
+        (phoneNumber.contains("+225") &&
+            phoneNumber.replaceAll(" ", "").trim().length == 11 &&
+            phoneNumber.indexOf("+225") == 0) ||
+        (phoneNumber.contains("00225") &&
+            phoneNumber.replaceAll(" ", "").trim().length == 12 &&
+            phoneNumber.indexOf("00225") == 0) ||
+        (phoneNumber.contains("+") &&
+            phoneNumber.indexOf("+") == 0 &&
+            phoneNumber.indexOf("+225") == 0);
+  }
+
+  static bool isIvorianNewPhone(String phoneNumber) {
+    return (phoneNumber.length == 10 &&
+            !phoneNumber.contains("+") &&
+            !(phoneNumber.contains("00225") &&
+                phoneNumber.indexOf("00225") == 0)) ||
+        (phoneNumber.contains("+225") &&
+            phoneNumber.replaceAll(" ", "").trim().length == 13 &&
+            phoneNumber.indexOf("+225") == 0) ||
+        (phoneNumber.contains("00225") &&
+            phoneNumber.replaceAll(" ", "").trim().length == 14 &&
+            phoneNumber.indexOf("00225") == 0) ;
   }
 
   static bool isNewPhone(String phoneNumber) {
@@ -204,6 +244,12 @@ class PhoneUtils {
     phone = normalizeNumber(phone);
     if (!validateNormalizeOldPhoneNumber(phone)) return null;
     dynamic operatorFound = determinateOperator(phone);
-    return (operatorFound != null ? operatorFound["new_initial"] : "") + phone;
+    return  "+225${(operatorFound != null ? operatorFound["new_initial"] : "") + phone}";
+  }
+  static String reverse(String phone) {
+    phone = normalizeNumber(phone);
+    //if (validateNormalizeOldPhoneNumber(phone)) return null;
+    //dynamic operatorFound = determinateOperator(phone);
+    return  "+225${phone.substring(2)}";
   }
 }
