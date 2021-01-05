@@ -148,147 +148,164 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
               ),
             ),
             Expanded(
-              child: _contacts != null && !processing
+              child: processing
                   //Build a list view of all contacts, displaying their avatar and
                   // display name
-                  ? ListView.builder(
-                      itemCount: _contacts?.length ?? 0,
-                      itemBuilder: (BuildContext context, int index) {
-                        Contact contact = _contacts?.elementAt(index);
-                        return InkWell(
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 18),
-                                  leading: (contact.avatar != null &&
-                                          contact.avatar.isNotEmpty)
-                                      ? CircleAvatar(
-                                          backgroundImage:
-                                              MemoryImage(contact.avatar),
-                                          backgroundColor:
-                                              Colors.grey.withOpacity(0.49),
-                                        )
-                                      : CircleAvatar(
-                                          child: Icon(
-                                            CupertinoIcons.person_solid,
-                                            size: 26,
-                                            color: Colors.white,
-                                          ),
-                                          backgroundColor:
-                                              Colors.grey.withOpacity(0.26),
-                                        ),
-                                  title: Text(contact.displayName ??
-                                      contact.familyName ??
-                                      contact.middleName ??
-                                      contact.givenName ??
-                                      ''),
-                                  subtitle: Column(
-                                    children: [
-                                      ...contact.phones.map(
-                                        (Item phone) {
-                                          bool isIvPhoneNumber =
-                                              PhoneUtils.isIvorianPhone(
-                                                  phone.value);
-                                          bool isNewIvPhoneNumber =
-                                              PhoneUtils.isIvorianNewPhone(
-                                                  phone.value);
-
-                                          String normalizePhoneNumber =
-                                              PhoneUtils.normalizeNumber(
-                                                  phone.value);
-                                          bool isValideOldNumber = PhoneUtils
-                                              .validateNormalizeOldPhoneNumber(
-                                                  normalizePhoneNumber);
-
-                                          dynamic operator =
-                                              PhoneUtils.determinateOperator(
-                                                  normalizePhoneNumber);
-
-                                          String phoneIv = PhoneUtils
-                                              .addIndicatifNumber(PhoneUtils
-                                                      .isNewPhone(
-                                                          normalizePhoneNumber)
-                                                  ? normalizePhoneNumber
-                                                  : ((operator != null
-                                                          ? operator[
-                                                              "new_initial"]
-                                                          : "") +
-                                                      normalizePhoneNumber));
-
-                                          return !isIvPhoneNumber || !isNewIvPhoneNumber
-                                              ? Row(children: [
-
-                                                ])
-                                              : Row(
-                                                  children: [
-                                                    Container(
-                                                      padding:
-                                                          EdgeInsets.all(5.0),
-                                                      margin:
-                                                          EdgeInsets.all(2.0),
-                                                      decoration: BoxDecoration(
-                                                        color: PhoneUtils
-                                                                    .isNewPhone(
-                                                                        normalizePhoneNumber) &&
-                                                                operator != null
-                                                            ? (operator["operator_color"]
-                                                                    as Color)
-                                                                .withOpacity(
-                                                                    0.4)
-                                                            : (isValideOldNumber
-                                                                    ? Colors
-                                                                        .blue
-                                                                    : Colors
-                                                                        .red)
-                                                                .withOpacity(
-                                                                    0.5),
-                                                        borderRadius:
-                                                            BorderRadius
-                                                                .circular(5.0),
-                                                      ),
-                                                      child: Column(
-                                                        crossAxisAlignment:
-                                                            CrossAxisAlignment
-                                                                .start,
-                                                        children: [
-                                                          Text(
-                                                            "${operator != null ? operator["operator"] : "Inconnu"}",
-                                                            style: TextStyle(
-                                                              fontSize: 9,
-                                                            ),
-                                                          ),
-                                                          Text("${phoneIv}"),
-                                                        ],
-                                                      ),
-                                                    ),
-                                                  ],
-                                                );
-                                        },
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          onLongPress: () {
-                            setState(() {});
-                          },
-                          onTap: () {},
-                        );
-                      },
-                    )
-                  : Center(
+                  ? Center(
                       child: const CircularProgressIndicator(),
-                    ),
+                    )
+                  : _contacts == null || _contacts.length <= 0
+                      ? Center(
+                          child: Text(
+                            "Aucun contact à convertir",
+                            style: TextStyle(
+                              fontWeight: FontWeight.bold,
+                              color: Colors.blueGrey,
+                            ),
+                          ),
+                        )
+                      : ListView.builder(
+                          itemCount: _contacts?.length ?? 0,
+                          itemBuilder: (BuildContext context, int index) {
+                            Contact contact = _contacts?.elementAt(index);
+                            return InkWell(
+                              child: Row(
+                                children: [
+                                  Expanded(
+                                    child: ListTile(
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                              vertical: 2, horizontal: 18),
+                                      leading: (contact.avatar != null &&
+                                              contact.avatar.isNotEmpty)
+                                          ? CircleAvatar(
+                                              backgroundImage:
+                                                  MemoryImage(contact.avatar),
+                                              backgroundColor:
+                                                  Colors.grey.withOpacity(0.49),
+                                            )
+                                          : CircleAvatar(
+                                              child: Icon(
+                                                CupertinoIcons.person_solid,
+                                                size: 26,
+                                                color: Colors.white,
+                                              ),
+                                              backgroundColor:
+                                                  Colors.grey.withOpacity(0.26),
+                                            ),
+                                      title: Text(contact.displayName ??
+                                          contact.familyName ??
+                                          contact.middleName ??
+                                          contact.givenName ??
+                                          ''),
+                                      subtitle: Column(
+                                        children: [
+                                          ...contact.phones.map(
+                                            (Item phone) {
+                                              bool isIvPhoneNumber =
+                                                  PhoneUtils.isIvorianPhone(
+                                                      phone.value);
+                                              bool isNewIvPhoneNumber =
+                                                  PhoneUtils.isIvorianNewPhone(
+                                                      phone.value);
+
+                                              String normalizePhoneNumber =
+                                                  PhoneUtils.normalizeNumber(
+                                                      phone.value);
+                                              bool isValideOldNumber = PhoneUtils
+                                                  .validateNormalizeOldPhoneNumber(
+                                                      normalizePhoneNumber);
+
+                                              dynamic operator = PhoneUtils
+                                                  .determinateOperator(
+                                                      normalizePhoneNumber);
+
+                                              String phoneIv = PhoneUtils
+                                                  .addIndicatifNumber(PhoneUtils
+                                                          .isNewPhone(
+                                                              normalizePhoneNumber)
+                                                      ? normalizePhoneNumber
+                                                      : ((operator != null
+                                                              ? operator[
+                                                                  "new_initial"]
+                                                              : "") +
+                                                          normalizePhoneNumber));
+
+                                              return !isIvPhoneNumber ||
+                                                      !isNewIvPhoneNumber
+                                                  ? Row(children: [])
+                                                  : Row(
+                                                      children: [
+                                                        Container(
+                                                          padding:
+                                                              EdgeInsets.all(
+                                                                  5.0),
+                                                          margin:
+                                                              EdgeInsets.all(
+                                                                  2.0),
+                                                          decoration:
+                                                              BoxDecoration(
+                                                            color: PhoneUtils
+                                                                        .isNewPhone(
+                                                                            normalizePhoneNumber) &&
+                                                                    operator !=
+                                                                        null
+                                                                ? (operator["operator_color"]
+                                                                        as Color)
+                                                                    .withOpacity(
+                                                                        0.4)
+                                                                : (isValideOldNumber
+                                                                        ? Colors
+                                                                            .blue
+                                                                        : Colors
+                                                                            .red)
+                                                                    .withOpacity(
+                                                                        0.5),
+                                                            borderRadius:
+                                                                BorderRadius
+                                                                    .circular(
+                                                                        5.0),
+                                                          ),
+                                                          child: Column(
+                                                            crossAxisAlignment:
+                                                                CrossAxisAlignment
+                                                                    .start,
+                                                            children: [
+                                                              Text(
+                                                                "${operator != null ? operator["operator"] : "Inconnu"}",
+                                                                style:
+                                                                    TextStyle(
+                                                                  fontSize: 9,
+                                                                ),
+                                                              ),
+                                                              Text(
+                                                                  "${phoneIv}"),
+                                                            ],
+                                                          ),
+                                                        ),
+                                                      ],
+                                                    );
+                                            },
+                                          )
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              onLongPress: () {
+                                setState(() {});
+                              },
+                              onTap: () {},
+                            );
+                          },
+                        ),
             )
           ],
         ),
       ),
       bottomNavigationBar: Visibility(
-        visible: _contacts != null,
+        visible: _contacts != null && _contacts.length > 0,
         child: BottomAppBar(
           child: Container(
             height: 50,
@@ -449,26 +466,27 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                 });
                                 List<Item> items = new List();
                                 for (Item i in c.phones) {
-                                  bool isNewPhoneNumber = PhoneUtils
-                                      .isIvorianNewPhone(i.value);
+                                  bool isNewPhoneNumber =
+                                      PhoneUtils.isIvorianNewPhone(i.value);
                                   print("${i.value} --> $isNewPhoneNumber");
-                                  if(isNewPhoneNumber){
+                                  if (isNewPhoneNumber) {
                                     setState(() {
                                       textLoading = "reverse ${i.value}";
                                     });
                                     String normalizePhoneNumber =
-                                    PhoneUtils.normalizeNumber(i.value);
+                                        PhoneUtils.normalizeNumber(i.value);
                                     String newPhone = PhoneUtils.reverse(
                                         normalizePhoneNumber);
                                     i.value = newPhone;
-                                    print("$normalizePhoneNumber --> $newPhone");
+                                    print(
+                                        "$normalizePhoneNumber --> $newPhone");
                                   }
 
                                   items.add(i);
                                 }
                                 c.phones = items;
-                                await ContactsService.deleteContact(c);
-                                await ContactsService.addContact(c);
+                                //await ContactsService.deleteContact(c);
+                                await ContactsService.updateContact(c);
                               }
 
                               setState(() {
@@ -486,19 +504,22 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                       height: size.height * 0.30,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20.0),
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
                                       ),
                                       //padding: EdgeInsets.all(10.0),
                                       child: Column(
                                         mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Container(
                                             width: size.width,
                                             padding: EdgeInsets.all(20),
                                             decoration: BoxDecoration(
-                                              color: Colors.green.withOpacity(0.1),
-                                              borderRadius: BorderRadius.vertical(
+                                              color:
+                                                  Colors.green.withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.vertical(
                                                 top: Radius.circular(20.0),
                                               ),
                                             ),
@@ -517,9 +538,9 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                             child: Center(
                                               child: Column(
                                                 mainAxisAlignment:
-                                                MainAxisAlignment.center,
+                                                    MainAxisAlignment.center,
                                                 crossAxisAlignment:
-                                                CrossAxisAlignment.center,
+                                                    CrossAxisAlignment.center,
                                                 children: [
                                                   Text(
                                                       "Vos contacts ont été remis à 8 chiffres"),
@@ -529,17 +550,17 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                           ),
                                           Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment.center,
+                                                MainAxisAlignment.center,
                                             children: [
-
                                               FlatButton(
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                  BorderRadius.circular(20),
+                                                      BorderRadius.circular(20),
                                                 ),
                                                 child: Text("Ok"),
                                                 onPressed: () {
-                                                  Navigator.of(context).pop(true);
+                                                  Navigator.of(context)
+                                                      .pop(true);
                                                 },
                                               )
                                             ],
@@ -548,7 +569,6 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                       ),
                                     ),
                                   );
-
                                 },
                               );
                               Navigator.of(context).pop(true);

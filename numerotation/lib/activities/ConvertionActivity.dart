@@ -26,7 +26,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
   bool isActiveSaved = false;
   String textLoading = "...";
 
-  DateTime febrary2021 = DateTime.tryParse("2021-02-01 00:00:00Z");
+  DateTime febrary2021 =  DateTime.tryParse("2021-01-31 23:59:00Z");
 
   @override
   void initState() {
@@ -114,131 +114,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                       itemCount: widget.contacts?.length ?? 0,
                       itemBuilder: (BuildContext context, int index) {
                         Contact contact = widget.contacts?.elementAt(index);
-                        return InkWell(
-                          child: Row(
-                            children: [
-                              Expanded(
-                                child: ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(
-                                      vertical: 2, horizontal: 18),
-                                  leading: (contact.avatar != null &&
-                                          contact.avatar.isNotEmpty)
-                                      ? CircleAvatar(
-                                          backgroundImage:
-                                              MemoryImage(contact.avatar),
-                                          backgroundColor:
-                                              Colors.grey.withOpacity(0.49),
-                                        )
-                                      : CircleAvatar(
-                                          child: Icon(
-                                            CupertinoIcons.person_solid,
-                                            size: 26,
-                                            color: Colors.white,
-                                          ),
-                                          backgroundColor:
-                                              Colors.grey.withOpacity(0.26),
-                                        ),
-                                  title: Text(contact.displayName ??
-                                      contact.familyName ??
-                                      contact.middleName ??
-                                      contact.givenName ??
-                                      ''),
-                                  subtitle: Column(
-                                    children: [
-                                      ...contact.phones.map(
-                                        (Item phone) {
-
-                                          //check if ivorian phone number
-
-
-                                          String normalizePhoneNumber =
-                                              PhoneUtils.normalizeNumber(
-                                                  phone.value);
-                                          bool isValideOldNumber = PhoneUtils
-                                              .validateNormalizeOldPhoneNumber(
-                                                  normalizePhoneNumber);
-
-                                          dynamic operator =
-                                              PhoneUtils.determinateOperator(
-                                                  normalizePhoneNumber);
-
-                                          String phoneIv = PhoneUtils
-                                              .addIndicatifNumber(PhoneUtils
-                                                      .isNewPhone(
-                                                          normalizePhoneNumber)
-                                                  ? normalizePhoneNumber
-                                                  : ((operator != null
-                                                          ? operator[
-                                                              "new_initial"]
-                                                          : "") +
-                                                      normalizePhoneNumber));
-
-                                          return Row(
-                                            children: [
-                                              Text(phone.value),
-                                              Icon(
-                                                CupertinoIcons.arrow_right,
-                                                size: 9,
-                                              ),
-                                              Container(
-                                                padding: EdgeInsets.all(5.0),
-                                                margin: EdgeInsets.all(2.0),
-                                                decoration: BoxDecoration(
-                                                  color: PhoneUtils.isNewPhone(
-                                                              normalizePhoneNumber) &&
-                                                          operator != null
-                                                      ? (operator["operator_color"]
-                                                              as Color)
-                                                          .withOpacity(0.4)
-                                                      : (isValideOldNumber
-                                                              ? Colors.blue
-                                                              : Colors.red)
-                                                          .withOpacity(0.5),
-                                                  borderRadius:
-                                                      BorderRadius.circular(
-                                                          5.0),
-                                                ),
-                                                child: Column(
-                                                  crossAxisAlignment:
-                                                      CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      "${operator != null ? operator["operator"] : "Inconnu"}",
-                                                      style: TextStyle(
-                                                        fontSize: 9,
-                                                      ),
-                                                    ),
-                                                    Text("${phoneIv}"),
-                                                  ],
-                                                ),
-                                              ),
-                                              Visibility(
-                                                child: Container(
-                                                  padding: EdgeInsets.all(5),
-                                                  child: Icon(
-                                                    CupertinoIcons
-                                                        .check_mark_circled_solid,
-                                                    color: Colors.green,
-                                                  ),
-                                                ),
-                                                visible: PhoneUtils.isNewPhone(
-                                                    normalizePhoneNumber),
-                                              )
-                                            ],
-                                          );
-                                        },
-                                      )
-                                    ],
-                                  ),
-                                ),
-                              ),
-                            ],
-                          ),
-                          onLongPress: () {
-                            setState(() {});
-                          },
-                          onTap: () {},
-                        );
+                        return buildItemInkWell(contact);
                       },
                     )
                   : Center(
@@ -257,9 +133,9 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
             //color: secondaryColor,
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors:febrary2021.isBefore(DateTime.now()) || isActiveSaved?
-                [primaryColor, Colors.blueAccent]:
-                [Colors.red, Colors.red[700]],
+                colors: febrary2021.isBefore(DateTime.now()) || isActiveSaved
+                    ? [primaryColor, Colors.blueAccent]
+                    : [Colors.red, Colors.red[700]],
               ),
             ),
             child: processing
@@ -424,14 +300,13 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                   items.add(i);
                                 }
                                 c.phones = items;
-                                await ContactsService.deleteContact(c);
-                                await ContactsService.addContact(c);
+                                //await ContactsService.deleteContact(c);
+                                await ContactsService.updateContact(c);
                               }
 
                               setState(() {
                                 processing = false;
                               });
-
 
                               await showDialog(
                                 context: context,
@@ -444,19 +319,22 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                       height: size.height * 0.30,
                                       decoration: BoxDecoration(
                                         color: Colors.white,
-                                        borderRadius: BorderRadius.circular(20.0),
+                                        borderRadius:
+                                            BorderRadius.circular(20.0),
                                       ),
                                       //padding: EdgeInsets.all(10.0),
                                       child: Column(
                                         mainAxisAlignment:
-                                        MainAxisAlignment.spaceBetween,
+                                            MainAxisAlignment.spaceBetween,
                                         children: [
                                           Container(
                                             width: size.width,
                                             padding: EdgeInsets.all(20),
                                             decoration: BoxDecoration(
-                                              color: Colors.green.withOpacity(0.1),
-                                              borderRadius: BorderRadius.vertical(
+                                              color:
+                                                  Colors.green.withOpacity(0.1),
+                                              borderRadius:
+                                                  BorderRadius.vertical(
                                                 top: Radius.circular(20.0),
                                               ),
                                             ),
@@ -475,9 +353,9 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                             child: Center(
                                               child: Column(
                                                 mainAxisAlignment:
-                                                MainAxisAlignment.center,
+                                                    MainAxisAlignment.center,
                                                 crossAxisAlignment:
-                                                CrossAxisAlignment.center,
+                                                    CrossAxisAlignment.center,
                                                 children: [
                                                   Text(
                                                       "Vos contacts ont été convertis à 10 chiffres"),
@@ -487,17 +365,17 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                           ),
                                           Row(
                                             mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
+                                                MainAxisAlignment.spaceBetween,
                                             children: [
-
                                               FlatButton(
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
-                                                  BorderRadius.circular(20),
+                                                      BorderRadius.circular(20),
                                                 ),
                                                 child: Text("Ok"),
                                                 onPressed: () {
-                                                  Navigator.of(context).pop(true);
+                                                  Navigator.of(context)
+                                                      .pop(true);
                                                 },
                                               )
                                             ],
@@ -506,7 +384,6 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                       ),
                                     ),
                                   );
-
                                 },
                               );
                               Navigator.of(context).pop(true);
@@ -521,6 +398,179 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                   ),
           ),
         ),
+      ),
+    );
+  }
+
+  Widget buildItemInkWell(Contact contact) {
+    return Padding(
+      padding: const EdgeInsets.all(2.0),
+      child: InkWell(
+        child: Container(
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(10),
+                topRight: Radius.circular(10),
+                bottomLeft: Radius.circular(10),
+                bottomRight: Radius.circular(10)),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.blueGrey.withOpacity(0.04),
+                spreadRadius: 5,
+                blurRadius: 7,
+                offset: Offset(0, 3), // changes position of shadow
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              Expanded(
+                child: ListTile(
+                  contentPadding:
+                      const EdgeInsets.symmetric(vertical: 2, horizontal: 18),
+                  leading: (contact.avatar != null && contact.avatar.isNotEmpty)
+                      ? CircleAvatar(
+                          backgroundImage: MemoryImage(contact.avatar),
+                          backgroundColor: Colors.grey.withOpacity(0.49),
+                        )
+                      : CircleAvatar(
+                          child: Icon(
+                            CupertinoIcons.person_solid,
+                            size: 26,
+                            color: Colors.white,
+                          ),
+                          backgroundColor: Colors.grey.withOpacity(0.26),
+                        ),
+                  title: Text(
+                    contact.displayName ??
+                        contact.familyName ??
+                        contact.middleName ??
+                        contact.givenName ??
+                        '',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  subtitle: Column(
+                    children: [
+                      ...contact.phones.map(
+                        (Item phone) {
+                          //check if ivorian phone number
+
+                          String normalizePhoneNumber =
+                              PhoneUtils.normalizeNumber(phone.value);
+                          bool isValideOldNumber =
+                              PhoneUtils.validateNormalizeOldPhoneNumber(
+                                  normalizePhoneNumber);
+
+                          dynamic operator = PhoneUtils.determinateOperator(
+                              normalizePhoneNumber);
+
+                          String phoneIv = PhoneUtils.addIndicatifNumber(
+                              PhoneUtils.isNewPhone(normalizePhoneNumber)
+                                  ? normalizePhoneNumber
+                                  : ((operator != null
+                                          ? operator["new_initial"]
+                                          : "") +
+                                      normalizePhoneNumber));
+
+                          return Column(
+                            children: [
+                              Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceBetween,
+                                children: [
+                                  Expanded(child: Text(phone.value)),
+                                  Icon(
+                                    CupertinoIcons.arrowtriangle_right,
+                                    size: 9,
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                      padding: EdgeInsets.all(5.0),
+                                      margin: EdgeInsets.all(2.0),
+                                      child: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          Row(
+                                            children: [
+                                              Text(
+                                                "${operator != null ? operator["operator"] : "Inconnu"}",
+                                                style: TextStyle(
+                                                  fontSize: 9,
+                                                  color: operator != null ? operator["operator_color"]: Colors.black87,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                              Visibility(
+                                                child: Container(
+                                                  padding: EdgeInsets.all(5),
+                                                  child: Icon(
+                                                    CupertinoIcons.check_mark_circled_solid,
+                                                    color: Colors.green,
+                                                    size: 10,
+                                                  ),
+                                                ),
+                                                visible: PhoneUtils.isNewPhone(
+                                                    normalizePhoneNumber),
+                                              )
+                                            ],
+                                          ),
+                                          if (PhoneUtils.isNewPhone(
+                                                  normalizePhoneNumber) ||
+                                              operator != null)
+                                            Row(
+                                              children: [
+                                                Text("+225"),
+                                                if (PhoneUtils.isNewPhone(
+                                                    normalizePhoneNumber))
+                                                  Text(
+                                                      "${normalizePhoneNumber}"),
+                                                if (!PhoneUtils.isNewPhone(
+                                                        normalizePhoneNumber) &&
+                                                    operator != null)
+                                                  Text(
+                                                    "${operator["new_initial"]}",
+                                                    style: TextStyle(
+                                                      fontWeight:
+                                                          FontWeight.bold,
+                                                      fontSize: 16,
+                                                        color: operator != null ? operator["operator_color"]: Colors.black87
+                                                    ),
+                                                  ),
+                                                if (!PhoneUtils.isNewPhone(
+                                                    normalizePhoneNumber))
+                                                  Text(
+                                                      "${normalizePhoneNumber}"),
+                                              ],
+                                            ),
+                                        ],
+                                      ),
+                                    ),
+                                  ),
+
+                                ],
+                              ),
+                              if (contact.phones.toList().indexOf(phone) !=
+                                  contact.phones.length - 1)
+                                Divider(),
+                            ],
+                          );
+                        },
+                      )
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        onLongPress: () {
+          setState(() {});
+        },
+        onTap: () {},
       ),
     );
   }

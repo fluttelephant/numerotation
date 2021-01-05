@@ -156,7 +156,7 @@ class PhoneUtils {
       value = value.substring(4);
     }
     if (value.contains("00225") && value.indexOf("00225") == 0) {
-      // delete +225
+      // delete 00225
       value = value.substring(5);
     }
     return value;

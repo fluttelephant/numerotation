@@ -57,6 +57,9 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
   bool selectionState = true;
   bool loaindActionProcess = false;
 
+  DateTime febrary2021 = DateTime.tryParse("2021-01-31 23:59:00Z");
+  DateTime now = DateTime.now();
+
   @override
   void initState() {
     getContacts();
@@ -73,7 +76,8 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
     if (await Permission.contacts.request().isGranted) {
       //We already have permissions for contact when we get to this page, so we
       // are now just retrieving it
-      Iterable<Contact> contactsAll = await ContactsService.getContacts();
+      Iterable<Contact> contactsAll =
+          await ContactsService.getContacts(withThumbnails: false);
       Iterable<Contact> contacts = contactsAll;
       if (contacts.isNotEmpty) {
         contacts = contacts.where((element) =>
@@ -101,8 +105,9 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
         App.prefs.getString(storageKey + PREF_USER_PHONE_NUMBER);
 
     print("phonesString $phonesString ${phonesString.length}");
-    List<String> phones = phonesString == null || phonesString.length==0 ? [] : phonesString.split(";");
-
+    List<String> phones = phonesString == null || phonesString.length == 0
+        ? []
+        : phonesString.split(";");
 
     List<dynamic> operatorPhone =
         phones.map((e) => PhoneUtils.determinateOperator(e)).toList();
@@ -288,7 +293,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                         subtitle: Row(
                           children: [
                             Text(
-                              "${allcontactsAll != null && allcontactsAll.length > 0 ? allcontactsAll.length : "0"} ccontacts",
+                              "${allcontactsAll != null && allcontactsAll.length > 0 ? allcontactsAll.length : "0"} contacts",
                               style: Theme.of(context)
                                   .textTheme
                                   .headline4
@@ -768,7 +773,8 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                             ),
                             child: InkWell(
                               onTap: () {
-                                Navigator.of(context).pushNamed(RouterGenerator.backTo8);
+                                Navigator.of(context)
+                                    .pushNamed(RouterGenerator.backTo8);
                               },
                               child: Center(
                                 child: Column(
@@ -786,6 +792,54 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                     ),
                                     Text(
                                       "Revenir de 10 à 8 chiffres",
+                                      textAlign: TextAlign.center,
+                                      style: TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          ),
+                          Container(
+                            width: 100,
+                            padding: EdgeInsets.all(10.0),
+                            margin: EdgeInsets.only(left: 14),
+                            decoration: BoxDecoration(
+                              boxShadow: <BoxShadow>[
+                                BoxShadow(
+                                  color: Colors.red.withOpacity(0.0002),
+                                  blurRadius: 5.5 * 1.0,
+                                  offset: Offset(0, 0.5 * 2),
+                                ),
+                              ],
+                              borderRadius: BorderRadius.circular(10),
+                              gradient: LinearGradient(
+                                colors: [
+                                  Colors.blueAccent,
+                                  Colors.lightBlueAccent
+                                ],
+                              ),
+                            ),
+                            child: InkWell(
+                              onTap: () async {
+                                await showDialogDonation(context, size, theme);
+                              },
+                              child: Center(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    Container(
+                                      child: Icon(Icons.payment),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white,
+                                        borderRadius: BorderRadius.circular(
+                                          50,
+                                        ),
+                                      ),
+                                      padding: EdgeInsets.all(10),
+                                    ),
+                                    Text(
+                                      "Faire un don",
                                       textAlign: TextAlign.center,
                                       style: TextStyle(color: Colors.white),
                                     ),
@@ -928,13 +982,26 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                           )
                         : ListView.builder(
                             itemCount: _contacts?.length ?? 0,
-                            padding: EdgeInsets.all(10),
+                            padding: EdgeInsets.all(5.0),
                             itemBuilder: (BuildContext context, int index) {
                               Contact contact = _contacts?.elementAt(index);
                               return Container(
                                 decoration: BoxDecoration(
-                                  //color: Colors.grey[200],
-                                  borderRadius: BorderRadius.circular(20),
+                                  color: Colors.white,
+                                  borderRadius: BorderRadius.only(
+                                      topLeft: Radius.circular(10),
+                                      topRight: Radius.circular(10),
+                                      bottomLeft: Radius.circular(10),
+                                      bottomRight: Radius.circular(10)),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.blueGrey.withOpacity(0.04),
+                                      spreadRadius: 5,
+                                      blurRadius: 7,
+                                      offset: Offset(
+                                          0, 3), // changes position of shadow
+                                    ),
+                                  ],
                                 ),
                                 padding: EdgeInsets.all(2),
                                 margin: EdgeInsets.all(2),
@@ -977,12 +1044,22 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                               fontWeight: FontWeight.bold,
                                             ),
                                           ),
-                                          subtitle: Text(contact
-                                                  .phones.isNotEmpty
-                                              ? contact.phones.first.value
-                                              : contact.emails.isNotEmpty
-                                                  ? contact.emails.first.value
-                                                  : ""),
+                                          subtitle: Row(
+                                            mainAxisAlignment:
+                                                MainAxisAlignment.spaceBetween,
+                                            children: [
+                                              Text(contact.phones.isNotEmpty
+                                                  ? contact.phones.first.value
+                                                  : contact.emails.isNotEmpty
+                                                      ? contact
+                                                          .emails.first.value
+                                                      : ""),
+                                              Text(
+                                                "${contact.phones.length} numéro(s)",
+                                                style: TextStyle(fontSize: 9),
+                                              )
+                                            ],
+                                          ),
                                         ),
                                       ),
                                       Visibility(
@@ -1072,99 +1149,263 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
     );
   }
 
-  void displayBottomSheet(BuildContext context) {
-    showModalBottomSheet(
-        context: context,
-        backgroundColor: Colors.transparent,
-        builder: (ctx) {
-          return Container(
+  Future showDialogDonation(
+      BuildContext context, Size size, ThemeData theme) async {
+    await showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          backgroundColor: Colors.transparent,
+          //.withOpacity(0.2),
+          contentPadding: EdgeInsets.all(0.0),
+          content: Container(
+            height: size.height * 0.44,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.vertical(
-                top: Radius.circular(40),
-              ),
               color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
             ),
-            height: MediaQuery.of(context).size.height * 0.46,
-            child: Center(
-                child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Container(
-                  width: MediaQuery.of(context).size.width,
-                  padding: EdgeInsets.all(20),
-                  decoration: BoxDecoration(
-                    color: primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(20.0),
+            //padding: EdgeInsets.all(10.0),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Container(
+                    width: size.width,
+                    padding: EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      borderRadius: BorderRadius.vertical(
+                        top: Radius.circular(20.0),
+                      ),
+                      gradient: LinearGradient(
+                        colors: [Colors.indigo, Colors.deepPurple],
+                      ),
                     ),
-                  ),
-                  child: Center(
-                    child: Text(
-                      "Options",
-                      style: TextStyle(
-                        fontSize: 18.0,
+                    child: Center(
+                      child: Text(
+                        "Faire un don !",
+                        style: theme.textTheme.headline4.copyWith(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ),
-                ListTile(
-                  leading: Icon(Icons.share),
-                  title: Text(
-                    "${allTranslations.text("menu_shared_app")}",
-                    style: TextStyle(
-                      color: primaryColor,
+                  Container(
+                    padding: EdgeInsets.all(20),
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Text(
+                            "Aidez-nous à améliorer nos applications ... Faites un don pour soutenir l'équipe.",
+                            style: TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                          Divider(),
+                          Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Image.asset(
+                                  "res/images/orangeCI.png",
+                                  height: 20.0,
+                                  width: 20.0,
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Orange Money"),
+                                  Text(
+                                    "+225${now.isAfter(febrary2021) ? "07" : ""}58018026",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
+                          ),
+                          Divider(),
+                          Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Image.asset(
+                                  "res/images/moov.jpeg",
+                                  height: 20.0,
+                                  width: 20.0,
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("Moov Money"),
+                                  Text(
+                                    "+225${now.isAfter(febrary2021) ? "01" : ""}02666592",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ],
+                          ),
+                          Divider(),
+                          Row(
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: Image.asset(
+                                  "res/images/logoMTN.jpg",
+                                  height: 20.0,
+                                  width: 20.0,
+                                ),
+                              ),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text("MTN Money"),
+                                  Text(
+                                    "+225${now.isAfter(febrary2021) ? "05" : ""}65710326",
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 20,
+                                    ),
+                                  ),
+                                ],
+                              )
+                            ],
+                          )
+                        ],
+                      ),
                     ),
                   ),
-                  onTap: () {
-                    Share.share(
-                        'Télécharge l\'application Passe à 10 et converti tes contacts en un click ! https://play.google.com/store/apps/details?id=com.flutter.fute.numerotation');
-                  },
+                ],
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void displayBottomSheet(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(40),
+            ),
+            color: Colors.white,
+          ),
+          height: MediaQuery.of(context).size.height * 0.51,
+          child: Center(
+              child: Column(
+            mainAxisAlignment: MainAxisAlignment.start,
+            children: [
+              Container(
+                width: MediaQuery.of(context).size.width,
+                padding: EdgeInsets.all(20),
+                decoration: BoxDecoration(
+                  color: primaryColor.withOpacity(0.1),
+                  borderRadius: BorderRadius.vertical(
+                    top: Radius.circular(20.0),
+                  ),
                 ),
-                ListTile(
-                  leading: Icon(Icons.backup),
-                  title: Text(
-                    "${allTranslations.text("menu_create_backup")}",
+                child: Center(
+                  child: Text(
+                    "Options",
                     style: TextStyle(
-                      color: _selectedContact.length > 0
-                          ? primaryColor
-                          : Colors.grey,
+                      fontSize: 18.0,
+                      fontWeight: FontWeight.bold,
                     ),
                   ),
-                  onTap: _selectedContact.length > 0
-                      ? () {
-                          createBackup();
-                        }
-                      : null,
                 ),
-                ListTile(
-                  leading: Icon(Icons.restore),
-                  title: Text(
-                    "${allTranslations.text("menu_restore_backup")}",
-                    style: TextStyle(
-                      color: primaryColor,
-                    ),
+              ),
+              ListTile(
+                leading: Icon(Icons.share),
+                title: Text(
+                  "${allTranslations.text("menu_shared_app")}",
+                  style: TextStyle(
+                    color: primaryColor,
                   ),
-                  onTap: () async {
-                    Backup b = new Backup(context);
-                    await b.getBackup();
-                  },
                 ),
-                ListTile(
-                  leading: Icon(Icons.live_help),
-                  title: Text(
-                    "${allTranslations.text("menu_about")}",
-                    style: TextStyle(
-                      color: primaryColor,
-                    ),
+                onTap: () {
+                  Share.share(
+                      'Télécharge l\'application Passe à 10 et converti tes contacts en un click ! https://play.google.com/store/apps/details?id=com.flutter.fute.numerotation');
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.backup),
+                title: Text(
+                  "${allTranslations.text("menu_create_backup")}",
+                  style: TextStyle(
+                    color: _selectedContact.length > 0
+                        ? primaryColor
+                        : Colors.grey,
                   ),
-                  onTap: () async {
-                    Navigator.of(context).pushNamed(RouterGenerator.about);
-                  },
-                )
-              ],
-            )),
-          );
-        });
+                ),
+                onTap: _selectedContact.length > 0
+                    ? () {
+                        createBackup();
+                      }
+                    : null,
+              ),
+              ListTile(
+                leading: Icon(Icons.restore),
+                title: Text(
+                  "${allTranslations.text("menu_restore_backup")}",
+                  style: TextStyle(
+                    color: primaryColor,
+                  ),
+                ),
+                onTap: () async {
+                  Backup b = new Backup(context);
+                  await b.getBackup();
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.live_help),
+                title: Text(
+                  "${allTranslations.text("menu_about")}",
+                  style: TextStyle(
+                    color: primaryColor,
+                  ),
+                ),
+                onTap: () async {
+                  Navigator.of(context).pushNamed(RouterGenerator.about);
+                },
+              ),
+              ListTile(
+                leading: Icon(Icons.payments_outlined),
+                title: Text(
+                  "Faire un don",
+                  style: TextStyle(
+                    color: primaryColor,
+                  ),
+                ),
+                onTap: () async {
+                  Size size = MediaQuery.of(context).size;
+                  ThemeData theme = Theme.of(context);
+                  await showDialogDonation(context, size, theme);
+                },
+              )
+            ],
+          )),
+        );
+      },
+    );
   }
 
   Future<void> selectDeselectall() async {

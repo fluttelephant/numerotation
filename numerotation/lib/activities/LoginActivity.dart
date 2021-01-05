@@ -462,7 +462,7 @@ class _PhonesStepWidgetState extends State<PhonesStepWidget> {
                     },
                     // "btn_next":"Suivant"
                     child: Text(
-                      "${allTranslations.text("btn_next")}",
+                      "${ctr_phones.length>0?allTranslations.text("btn_next"):"Passer"}",
                       style: widget.theme.textTheme.button.copyWith(),
                     ),
                   ),
