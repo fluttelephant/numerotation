@@ -150,7 +150,9 @@ class PhoneUtils {
   ];
 
   static String normalizeNumber(String number) {
-    String value = number.replaceAll(" ", "").trim();
+    String value = number.replaceAll("\u202c", "")
+        .replaceAll("\u202A", "")
+        .replaceAll(" ", "").trim();
     if (value.contains("+225") && value.indexOf("+225") == 0) {
       // delete +225
       value = value.substring(4);
@@ -199,10 +201,10 @@ class PhoneUtils {
             !(phoneNumber.contains("00225") &&
                 phoneNumber.indexOf("00225") == 0)) ||
         (phoneNumber.contains("+225") &&
-            phoneNumber.replaceAll(" ", "").trim().length == 13 &&
+            phoneNumber.replaceAll(" ", "").trim().length == 14 &&
             phoneNumber.indexOf("+225") == 0) ||
         (phoneNumber.contains("00225") &&
-            phoneNumber.replaceAll(" ", "").trim().length == 14 &&
+            phoneNumber.replaceAll(" ", "").trim().length == 15 &&
             phoneNumber.indexOf("00225") == 0) ;
   }
 

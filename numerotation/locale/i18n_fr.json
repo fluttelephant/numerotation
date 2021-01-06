@@ -33,5 +33,6 @@
   "label_continuous_with": "Continuer avec",
   "label_already_have_phone": "Vous avez déjà un némero enrégistré",
   "files_loading": "Chargement des fichiers",
-  "backup_files": "fichiers de sauvegarde"
+  "backup_files": "fichiers de sauvegarde",
+  "label_user_conditions": "Conditions générales d'utilisation"
 }

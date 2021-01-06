@@ -12,6 +12,7 @@ import 'package:numerotation/core/utils/theme.dart';
 import 'package:numerotation/shared/RoundedCheckBox.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:share/share.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class HomeActivity extends StatefulWidget {
   @override
@@ -86,8 +87,14 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                 phone.value.contains("+225") ||
                 phone.value.contains("00225") ||
                 //!phone.value.contains("+") ||
-                phone.value.replaceAll(" ", "").trim().length == 8));
+                phone.value.replaceAll(" ", "")
+                    .replaceAll("\u202c", "")
+                    .replaceAll("\u202A", "").trim().length == 8));
       }
+
+      print("------------------- ");
+      print(contacts.map((e) => e.identifier).length);
+      print(contacts.map((e) => e.identifier).join("|")+" %%% ");
       setState(() {
         _contacts = contacts;
         _contactsAll = contacts;
@@ -675,45 +682,84 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                                                   SizedBox(
                                                                     height: 5,
                                                                   ),
-                                                                  Container(
-                                                                    height: 60,
-                                                                    width: MediaQuery.of(
-                                                                            context)
-                                                                        .size
-                                                                        .width,
-                                                                    margin: EdgeInsets
-                                                                        .all(5),
-                                                                    padding:
-                                                                        EdgeInsets.all(
-                                                                            10),
-                                                                    child:
-                                                                        FlatButton(
-                                                                      shape:
-                                                                          RoundedRectangleBorder(
-                                                                        borderRadius:
-                                                                            BorderRadius.circular(20),
-                                                                      ),
-                                                                      child:
-                                                                          Text(
-                                                                        "${allTranslations.text("btn_shared_labelle")}",
-                                                                        style:
-                                                                            TextStyle(
+                                                                  Row(
+                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                    children: [
+                                                                      Container(
+                                                                        height: 45,
+                                                                        width: MediaQuery.of(
+                                                                                context)
+                                                                            .size
+                                                                            .width/3,
+                                                                        padding:
+                                                                            EdgeInsets.all(
+                                                                                5),
+                                                                        child:
+                                                                            FlatButton(
+                                                                          shape:
+                                                                              RoundedRectangleBorder(
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(20),
+                                                                          ),
+                                                                          child:
+                                                                              Text(
+                                                                            "${allTranslations.text("btn_shared_labelle")}",
+                                                                            style:
+                                                                                TextStyle(
+                                                                              color:
+                                                                                  Colors.white,
+                                                                              fontWeight:
+                                                                                  FontWeight.bold,
+                                                                            ),
+                                                                          ),
                                                                           color:
-                                                                              Colors.white,
-                                                                          fontWeight:
-                                                                              FontWeight.bold,
+                                                                              primaryColor,
+                                                                          onPressed:
+                                                                              () {
+                                                                            Share.share(
+                                                                                'Bonjour ce contact : ${e.text} est désormais ${PhoneUtils.addIndicatifNumber(PhoneUtils.convert(e.text))}');
+                                                                            Navigator.of(context)
+                                                                                .pop();
+                                                                          },
                                                                         ),
                                                                       ),
-                                                                      color:
-                                                                          primaryColor,
-                                                                      onPressed:
-                                                                          () {
-                                                                        Share.share(
-                                                                            'Bonjour ce contact : ${e.text} est désormais ${PhoneUtils.addIndicatifNumber(PhoneUtils.convert(e.text))}');
-                                                                        Navigator.of(context)
-                                                                            .pop();
-                                                                      },
-                                                                    ),
+                                                                      Container(
+                                                                        height: 45,
+                                                                        width: MediaQuery.of(
+                                                                                context)
+                                                                            .size
+                                                                            .width/3,
+                                                                        padding:
+                                                                            EdgeInsets.all(
+                                                                                5),
+                                                                        child:
+                                                                            FlatButton(
+                                                                          shape:
+                                                                              RoundedRectangleBorder(
+                                                                            borderRadius:
+                                                                                BorderRadius.circular(20),
+                                                                          ),
+                                                                          child:
+                                                                              Text(
+                                                                            "Appeler",
+                                                                            style:
+                                                                                TextStyle(
+                                                                              color:
+                                                                                  Colors.white,
+                                                                              fontWeight:
+                                                                                  FontWeight.bold,
+                                                                            ),
+                                                                          ),
+                                                                          color:
+                                                                              secondaryColor,
+                                                                          onPressed:
+                                                                              () async {
+                                                                                await launch("tel:${PhoneUtils.addIndicatifNumber(PhoneUtils.convert(e.text))}");
+
+                                                                          },
+                                                                        ),
+                                                                      ),
+                                                                    ],
                                                                   ),
                                                                 ],
                                                               ),
@@ -793,7 +839,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                     Text(
                                       "Revenir de 10 à 8 chiffres",
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.white),
+                                      style: TextStyle(color: Colors.white, fontSize: 12),
                                     ),
                                   ],
                                 ),
@@ -841,7 +887,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                     Text(
                                       "Faire un don",
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.white),
+                                      style: TextStyle(color: Colors.white, fontSize: 12),
                                     ),
                                   ],
                                 ),
@@ -985,6 +1031,33 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                             padding: EdgeInsets.all(5.0),
                             itemBuilder: (BuildContext context, int index) {
                               Contact contact = _contacts?.elementAt(index);
+
+                              List<Item> phones =
+                              contact.phones.fold(new List<Item>(), (previousValue, element) {
+                                if (!previousValue.any((e) =>
+                                element.label == e.label && //1
+                                    (
+                                        (element.value
+                                            .replaceAll("\u202c", "")
+                                            .replaceAll("\u202A", "")
+                                            .replaceAll(" ", "")
+                                            .trim() ==
+                                            e.value
+                                                .replaceAll("\u202c", "")
+                                                .replaceAll("\u202A", "")
+                                                .replaceAll(" ", "")
+                                                .trim()) //2
+                                            ||
+                                            (PhoneUtils.isIvorianPhone(e.value) &&
+                                                PhoneUtils.isIvorianPhone(element.value) &&
+                                                PhoneUtils.normalizeNumber(e.value) ==
+                                                    PhoneUtils.normalizeNumber(element.value) //2'
+                                            )))) {
+                                  previousValue.add(element);
+                                }
+                                return previousValue;
+                              }).toList();
+                              contact.phones = phones;
                               return Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white,
@@ -1309,100 +1382,113 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
             ),
             color: Colors.white,
           ),
-          height: MediaQuery.of(context).size.height * 0.51,
-          child: Center(
-              child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Container(
-                width: MediaQuery.of(context).size.width,
-                padding: EdgeInsets.all(20),
-                decoration: BoxDecoration(
-                  color: primaryColor.withOpacity(0.1),
-                  borderRadius: BorderRadius.vertical(
-                    top: Radius.circular(20.0),
+          height: MediaQuery.of(context).size.height * 0.61,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20.0),
+                    ),
                   ),
-                ),
-                child: Center(
-                  child: Text(
-                    "Options",
-                    style: TextStyle(
-                      fontSize: 18.0,
-                      fontWeight: FontWeight.bold,
+                  child: Center(
+                    child: Text(
+                      "Options",
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                   ),
                 ),
-              ),
-              ListTile(
-                leading: Icon(Icons.share),
-                title: Text(
-                  "${allTranslations.text("menu_shared_app")}",
-                  style: TextStyle(
-                    color: primaryColor,
+                ListTile(
+                  leading: Icon(Icons.share),
+                  title: Text(
+                    "${allTranslations.text("menu_shared_app")}",
+                    style: TextStyle(
+                      color: primaryColor,
+                    ),
                   ),
+                  onTap: () {
+                    Share.share(
+                        '''Partagez Passe à 10 \n Une application pour vous permettre de migrer tous vos contacts au 31 janvier 2021. \nElle est totalement gratuite et ne collecte aucunes de vos données personnelles \n*Cliquez sur le lien pour télécharger sur google play* : https://play.google.com/store/apps/details?id=com.flutter.fute.numerotation''');
+                  },
                 ),
-                onTap: () {
-                  Share.share(
-                      'Télécharge l\'application Passe à 10 et converti tes contacts en un click ! https://play.google.com/store/apps/details?id=com.flutter.fute.numerotation');
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.backup),
-                title: Text(
-                  "${allTranslations.text("menu_create_backup")}",
-                  style: TextStyle(
-                    color: _selectedContact.length > 0
-                        ? primaryColor
-                        : Colors.grey,
+                ListTile(
+                  leading: Icon(Icons.backup),
+                  title: Text(
+                    "${allTranslations.text("menu_create_backup")}",
+                    style: TextStyle(
+                      color: _selectedContact.length > 0
+                          ? primaryColor
+                          : Colors.grey,
+                    ),
                   ),
+                  onTap: _selectedContact.length > 0
+                      ? () {
+                          createBackup();
+                        }
+                      : null,
                 ),
-                onTap: _selectedContact.length > 0
-                    ? () {
-                        createBackup();
-                      }
-                    : null,
-              ),
-              ListTile(
-                leading: Icon(Icons.restore),
-                title: Text(
-                  "${allTranslations.text("menu_restore_backup")}",
-                  style: TextStyle(
-                    color: primaryColor,
+                ListTile(
+                  leading: Icon(Icons.restore),
+                  title: Text(
+                    "${allTranslations.text("menu_restore_backup")}",
+                    style: TextStyle(
+                      color: primaryColor,
+                    ),
                   ),
+                  onTap: () async {
+                    Backup b = new Backup(context);
+                    await b.getBackup();
+                  },
                 ),
-                onTap: () async {
-                  Backup b = new Backup(context);
-                  await b.getBackup();
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.live_help),
-                title: Text(
-                  "${allTranslations.text("menu_about")}",
-                  style: TextStyle(
-                    color: primaryColor,
+                ListTile(
+                  leading: Icon(Icons.help_center_rounded),
+                  title: Text(
+                    "Conditions d'utilisations",
+                    style: TextStyle(
+                      color: primaryColor,
+                    ),
                   ),
+                  onTap: () async {
+                    Navigator.of(context).pushNamed(RouterGenerator.cgu);
+                  },
                 ),
-                onTap: () async {
-                  Navigator.of(context).pushNamed(RouterGenerator.about);
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.payments_outlined),
-                title: Text(
-                  "Faire un don",
-                  style: TextStyle(
-                    color: primaryColor,
+                ListTile(
+                  leading: Icon(Icons.help_center_outlined),
+                  title: Text(
+                    "${allTranslations.text("menu_about")}",
+                    style: TextStyle(
+                      color: primaryColor,
+                    ),
                   ),
+                  onTap: () async {
+                    Navigator.of(context).pushNamed(RouterGenerator.about);
+                  },
                 ),
-                onTap: () async {
-                  Size size = MediaQuery.of(context).size;
-                  ThemeData theme = Theme.of(context);
-                  await showDialogDonation(context, size, theme);
-                },
-              )
-            ],
-          )),
+                ListTile(
+                  leading: Icon(Icons.payments_outlined),
+                  title: Text(
+                    "Faire un don",
+                    style: TextStyle(
+                      color: primaryColor,
+                    ),
+                  ),
+                  onTap: () async {
+                    Size size = MediaQuery.of(context).size;
+                    ThemeData theme = Theme.of(context);
+                    await showDialogDonation(context, size, theme);
+                  },
+                )
+              ],
+            ),
+          ),
         );
       },
     );
