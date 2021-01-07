@@ -152,6 +152,9 @@ class PhoneUtils {
   static String normalizeNumber(String number) {
     String value = number.replaceAll("\u202c", "")
         .replaceAll("\u202A", "")
+        .replaceAll("(", "")
+        .replaceAll(")", "")
+        .replaceAll("-", "")
         .replaceAll(" ", "").trim();
     if (value.contains("+225") && value.indexOf("+225") == 0) {
       // delete +225
@@ -176,10 +179,12 @@ class PhoneUtils {
   }
 
   static bool isIvorianPhone(String phoneNumber) {
+    phoneNumber = normalizeNumber(phoneNumber);
     return isIvorianOldPhone(phoneNumber) || isIvorianNewPhone(phoneNumber);
   }
 
   static bool isIvorianOldPhone(String phoneNumber) {
+    phoneNumber = normalizeNumber(phoneNumber);
     return (phoneNumber.length == 8 &&
             !phoneNumber.contains("+") &&
             !(phoneNumber.contains("00225") &&

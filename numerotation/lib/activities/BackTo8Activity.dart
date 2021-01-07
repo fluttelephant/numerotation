@@ -6,7 +6,6 @@ import 'package:numerotation/core/utils/PhoneUtils.dart';
 import 'package:numerotation/core/utils/theme.dart';
 import 'package:numerotation/shared/AppTitleWidget.dart';
 import 'package:permission_handler/permission_handler.dart';
-import 'package:flutter_contact/contacts.dart' as flC;
 
 class BackTo8Activity extends StatefulWidget {
   const BackTo8Activity({Key key}) : super(key: key);
@@ -539,7 +538,7 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                 });
 
                                 //check valid identifier
-                                checkId:
+                                /*checkId:
                                 {
                                   try {
                                     final contact =
@@ -572,7 +571,7 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                     await contactWarning(c, size, theme);
                                     continue;
                                   }
-                                }
+                                }*/
                                 List<Item> items = new List();
                                 for (Item i in c.phones) {
                                   bool isNewPhoneNumber =

@@ -5,7 +5,7 @@ import 'package:numerotation/core/utils/Backup.dart';
 import 'package:numerotation/core/utils/PhoneUtils.dart';
 import 'package:numerotation/core/utils/theme.dart';
 import 'package:numerotation/shared/AppTitleWidget.dart';
-import 'package:flutter_contact/contacts.dart' as flC;
+//import 'package:flutter_contact/contacts.dart' as flC;
 import 'package:url_launcher/url_launcher.dart';
 
 class ConvertionActivity extends StatefulWidget {
@@ -174,7 +174,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                             children: [
                               Expanded(
                                 child: Text(
-                                  "Il est préférable de faire la conversion le 1 février 2021... Veuillez patienter  ",
+                                  "Il est préférable de faire la conversion le 1 février 2021... Taper deux fois pour avoir l'action  ",
                                   style: theme.textTheme.headline4.copyWith(
                                     fontSize: 14.0,
                                     color: Colors.white,
@@ -266,10 +266,10 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                                       BorderRadius.circular(20),
                                                 ),
                                                 child: Text(
-                                                    "Convertir plus tard ( 1 Février 2021 )"),
+                                                    "Continuer"),
                                                 onPressed: () {
                                                   Navigator.of(context)
-                                                      .pop(false);
+                                                      .pop(true);
                                                 },
                                               )
                                             ],
@@ -300,7 +300,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                       "${c.displayName ?? c.familyName ?? c.givenName ?? c.middleName}";
                                 });
                                 //check valid identifier
-                                checkId:
+                                /*checkId:
                                 {
                                   try {
                                     final contact =
@@ -354,7 +354,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                     await contactWarning(c, size, theme);
                                     continue;
                                   }
-                                }
+                                }*/
 
                                 setState(() {
                                   textLoading =
@@ -362,6 +362,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                 });
                                 List<Item> items = new List();
                                 for (Item i in c.phones) {
+                                  print(i.value);
                                   String normalizePhoneNumber =
                                       PhoneUtils.normalizeNumber(i.value);
                                   bool isValideOldNumber = PhoneUtils
@@ -374,11 +375,17 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                   }
                                   if (!items.any((it) =>
                                       it.value
+                                          .replaceAll("(", "")
+                                          .replaceAll("-", "")
+                                          .replaceAll(")", "")
                                           .replaceAll("\u202c", "")
                                           .replaceAll("\u202A", "")
                                           .replaceAll(" ", "")
                                           .trim() ==
                                       i.value
+                                          .replaceAll("(", "")
+                                          .replaceAll(")", "")
+                                          .replaceAll("-", "")
                                           .replaceAll("\u202c", "")
                                           .replaceAll("\u202A", "")
                                           .replaceAll(" ", "")
@@ -496,7 +503,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                         : null,
                     onDoubleTap: () {
                       setState(() {
-                        // isActiveSaved = !isActiveSaved;
+                         isActiveSaved = !isActiveSaved;
                       });
                     },
                   ),
@@ -622,11 +629,17 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                   .replaceAll("\u202c", "")
                   .replaceAll("\u202A", "")
                   .replaceAll(" ", "")
+                 .replaceAll("-", "")
+                 .replaceAll(")", "")
+                 .replaceAll("(", "")
                   .trim() ==
               e.value
                   .replaceAll("\u202c", "")
                   .replaceAll("\u202A", "")
                   .replaceAll(" ", "")
+                  .replaceAll("-", "")
+                  .replaceAll(")", "")
+                  .replaceAll("(", "")
                   .trim()) //2
               ||
           (PhoneUtils.isIvorianPhone(e.value) &&

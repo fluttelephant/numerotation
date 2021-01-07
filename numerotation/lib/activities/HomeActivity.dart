@@ -84,17 +84,12 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
         contacts = contacts.where((element) =>
             element.phones.isNotEmpty &&
             element.phones.any((phone) =>
-                phone.value.contains("+225") ||
-                phone.value.contains("00225") ||
-                //!phone.value.contains("+") ||
-                phone.value.replaceAll(" ", "")
-                    .replaceAll("\u202c", "")
-                    .replaceAll("\u202A", "").trim().length == 8));
+            PhoneUtils.isIvorianOldPhone(phone.value)));
       }
 
       print("------------------- ");
-      print(contacts.map((e) => e.identifier).length);
-      print(contacts.map((e) => e.identifier).join("|")+" %%% ");
+     // print(contacts.map((e) => e.identifier).length);
+      // print(contacts.map((e) => e.identifier).join("|")+" %%% ");
       setState(() {
         _contacts = contacts;
         _contactsAll = contacts;
@@ -111,7 +106,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
     String phonesString =
         App.prefs.getString(storageKey + PREF_USER_PHONE_NUMBER);
 
-    print("phonesString $phonesString ${phonesString.length}");
+    //print("phonesString $phonesString ${phonesString.length}");
     List<String> phones = phonesString == null || phonesString.length == 0
         ? []
         : phonesString.split(";");
@@ -281,16 +276,14 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                     Padding(
                       padding: EdgeInsets.all(0.0),
                       child: ListTile(
+                        onTap: (){
+                          getContacts();
+                        },
                         leading: CircleAvatar(
                           radius: 42,
                           backgroundColor: primaryColor,
                           child: Center(
-                            child: Text(
-                              "${name.substring(0, 1)}",
-                              style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.white),
-                            ),
+                            child: Icon(Icons.refresh, color: Colors.white,),
                           ),
                         ),
                         title: Text(
@@ -1038,11 +1031,17 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                 element.label == e.label && //1
                                     (
                                         (element.value
+                                            .replaceAll("(", "")
+                                            .replaceAll(")", "")
+                                            .replaceAll("-", "")
                                             .replaceAll("\u202c", "")
                                             .replaceAll("\u202A", "")
                                             .replaceAll(" ", "")
                                             .trim() ==
                                             e.value
+                                                .replaceAll("(", "")
+                                                .replaceAll(")", "")
+                                                .replaceAll("-", "")
                                                 .replaceAll("\u202c", "")
                                                 .replaceAll("\u202A", "")
                                                 .replaceAll(" ", "")
