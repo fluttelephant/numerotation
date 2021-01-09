@@ -1,10 +1,12 @@
-import 'package:contacts_service/contacts_service.dart';
+import 'package:contact_editor/contact_editor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:numerotation/core/GlobalTranslations.dart';
 import 'package:numerotation/core/utils/Backup.dart';
 import 'package:numerotation/core/utils/PhoneUtils.dart';
 import 'package:numerotation/core/utils/theme.dart';
 import 'package:numerotation/shared/AppTitleWidget.dart';
+
 //import 'package:flutter_contact/contacts.dart' as flC;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -130,7 +132,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
       ),
       bottomNavigationBar: Visibility(
         visible: !widget.contacts.every(
-            (e) => e.phones.every((p) => PhoneUtils.isNewPhone(p.value))),
+            (e) => e.phoneList.every((p) => PhoneUtils.isNewPhone(p.mainData))),
         child: BottomAppBar(
           child: Container(
             height: 50,
@@ -187,7 +189,8 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                     onTap: febrary2021.isBefore(DateTime.now()) || isActiveSaved
                         ? () async {
                             //warning
-
+                            await ConvertProcess(context, size, theme);
+                            return;
                             bool result = await showDialog(
                               context: context,
                               builder: (_) {
@@ -238,9 +241,9 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                                     CrossAxisAlignment.center,
                                                 children: [
                                                   /*Text(
-                                                      "Attention la conversion de contact en masse comporte des risque il es préferable de convertir vos contact singulièrement ")*/
+                                    "Attention la conversion de contact en masse comporte des risque il es préferable de convertir vos contact singulièrement ")*/
                                                   Text(
-                                                      "Si vous décidez de continuer à convertir vos contacts sélectionnés vont être remplacés par leurs nouveaux formats."),
+                                                      "Avant le 1 Février 2021, les numéros à 10 chiffres ne soront pas joignable"),
                                                 ],
                                               ),
                                             ),
@@ -249,24 +252,23 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              /*FlatButton(
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                ),
-                                                child: Text("Annuler"),
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(false);
-                                                },
-                                              ),*/
                                               FlatButton(
                                                 shape: RoundedRectangleBorder(
                                                   borderRadius:
                                                       BorderRadius.circular(20),
                                                 ),
-                                                child: Text(
-                                                    "Continuer"),
+                                                child: Text("Plus tard"),
+                                                onPressed: () {
+                                                  Navigator.of(context)
+                                                      .pop(false);
+                                                },
+                                              ),
+                                              FlatButton(
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(20),
+                                                ),
+                                                child: Text("Continuer"),
                                                 onPressed: () {
                                                   Navigator.of(context)
                                                       .pop(true);
@@ -282,228 +284,13 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                               },
                             );
                             if (result != null && !!result) {
-                              setState(() {
-                                processing = true;
-                              });
-                              setState(() {
-                                textLoading =
-                                    "Sauvegarde des contacts à convertir";
-                              });
-                              await Backup.writeContact(widget.contacts);
-                              setState(() {
-                                textLoading = "Conversion";
-                              });
-
-                              for (Contact c in widget.contacts) {
-                                setState(() {
-                                  textLoading =
-                                      "${c.displayName ?? c.familyName ?? c.givenName ?? c.middleName}";
-                                });
-                                //check valid identifier
-                                /*checkId:
-                                {
-                                  try {
-                                    final contact =
-                                        await flC.Contacts.getContact(
-                                            c.identifier);
-                                    if (contact != null) {
-                                      print(
-                                          "--------------------------------------------------------------------------");
-                                      print(
-                                          "| RT identifier: ${contact.unifiedContactId} VS  ${c.identifier}  |");
-                                      print(
-                                          "| RT middleName: ${contact.middleName} VS  ${c.middleName}  |");
-                                      print(
-                                          "| RT familyName: ${contact.familyName} VS  ${c.familyName}  |");
-                                      print(
-                                          "| RT givenName: ${contact.givenName} VS  ${c.givenName}  |");
-                                      print(
-                                          "| RT phones length: ${contact.phones.length} VS  ${c.phones.length}  |");
-                                      print(
-                                          "| RT phones: ${contact.phones.map((e) => "${e.label}:${e.value}").join(",")} VS  ${c.phones.map((e) => "${e.label}:${e.value}").join(",")}  |");
-                                      print(
-                                          "--------------------------------------------------------------------------");
-                                    }
-                                    if (contact != null &&
-                                        contact.unifiedContactId ==
-                                            c.identifier &&
-                                        c.phones.length ==
-                                            contact.phones.length &&
-                                        c.phones.every((cPh) => contact.phones
-                                            .any((ctPh) =>
-                                                (cPh.value == ctPh.value) &&
-                                                (cPh.label == ctPh.label)))) {
-                                      print(
-                                          "------> OK :::::::> ${contact.displayName ?? contact.familyName ?? contact.givenName ?? contact.middleName}");
-                                      print(contact.toString());
-                                      print(contact.middleName);
-                                      print(contact.familyName);
-                                      print(contact.givenName);
-                                      print(contact.displayName);
-                                      print(contact.unifiedContactId);
-                                      print(contact.singleContactId);
-                                      print(contact.identifier);
-                                      break checkId;
-                                    } else {
-                                      print("BAD ID ${c.identifier}");
-                                      await contactWarning(c, size, theme);
-                                      continue;
-                                    }
-                                  } catch (e) {
-                                    print("BAD ID (catch ex) ${c.identifier}");
-                                    await contactWarning(c, size, theme);
-                                    continue;
-                                  }
-                                }*/
-
-                                setState(() {
-                                  textLoading =
-                                      "${c.displayName ?? c.familyName ?? c.givenName ?? c.middleName}";
-                                });
-                                List<Item> items = new List();
-                                for (Item i in c.phones) {
-                                  print(i.value);
-                                  String normalizePhoneNumber =
-                                      PhoneUtils.normalizeNumber(i.value);
-                                  bool isValideOldNumber = PhoneUtils
-                                      .validateNormalizeOldPhoneNumber(
-                                          normalizePhoneNumber);
-                                  if (isValideOldNumber) {
-                                    String newPhone = PhoneUtils.convert(
-                                        normalizePhoneNumber);
-                                    i.value = newPhone;
-                                  }
-                                  if (!items.any((it) =>
-                                      it.value
-                                          .replaceAll("(", "")
-                                          .replaceAll("-", "")
-                                          .replaceAll(")", "")
-                                          .replaceAll("\u202c", "")
-                                          .replaceAll("\u202A", "")
-                                          .replaceAll(" ", "")
-                                          .trim() ==
-                                      i.value
-                                          .replaceAll("(", "")
-                                          .replaceAll(")", "")
-                                          .replaceAll("-", "")
-                                          .replaceAll("\u202c", "")
-                                          .replaceAll("\u202A", "")
-                                          .replaceAll(" ", "")
-                                          .trim())) items.add(i);
-                                }
-                                c.phones = [];
-                                c.phones = items;
-                                //await ContactsService.deleteContact(c);
-
-                                //verifi identifier
-
-                                dynamic result =
-                                    await ContactsService.updateContact(c);
-                                print(result.toString());
-
-                                print("---------------BEGIN------------------");
-                                print(c.toString());
-                                print(c.middleName);
-                                print(c.familyName);
-                                print(c.givenName);
-                                print(c.displayName);
-                                print(c.androidAccountName);
-                                print(c.androidAccountTypeRaw);
-                                print(c.identifier);
-                                print("------------->");
-
-                                print("-------------END--------------------");
-                              }
-
-                              setState(() {
-                                processing = false;
-                              });
-
-                              await showDialog(
-                                context: context,
-                                builder: (_) {
-                                  return AlertDialog(
-                                    backgroundColor: Colors.transparent,
-                                    //.withOpacity(0.2),
-                                    contentPadding: EdgeInsets.all(0.0),
-                                    content: Container(
-                                      height: size.height * 0.30,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(20.0),
-                                      ),
-                                      //padding: EdgeInsets.all(10.0),
-                                      child: Column(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Container(
-                                            width: size.width,
-                                            padding: EdgeInsets.all(20),
-                                            decoration: BoxDecoration(
-                                              color:
-                                                  Colors.green.withOpacity(0.1),
-                                              borderRadius:
-                                                  BorderRadius.vertical(
-                                                top: Radius.circular(20.0),
-                                              ),
-                                            ),
-                                            child: Center(
-                                              child: Text(
-                                                "Operation terminée !!",
-                                                style: theme.textTheme.headline4
-                                                    .copyWith(
-                                                  color: Colors.green[900],
-                                                ),
-                                              ),
-                                            ),
-                                          ),
-                                          Container(
-                                            padding: EdgeInsets.all(20),
-                                            child: Center(
-                                              child: Column(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment.center,
-                                                crossAxisAlignment:
-                                                    CrossAxisAlignment.center,
-                                                children: [
-                                                  Text(
-                                                      "Vos contacts ont été convertis à 10 chiffres"),
-                                                ],
-                                              ),
-                                            ),
-                                          ),
-                                          Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.center,
-                                            children: [
-                                              FlatButton(
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(20),
-                                                ),
-                                                child: Text("Ok"),
-                                                onPressed: () {
-                                                  Navigator.of(context)
-                                                      .pop(true);
-                                                },
-                                              )
-                                            ],
-                                          ),
-                                        ],
-                                      ),
-                                    ),
-                                  );
-                                },
-                              );
-                              Navigator.of(context).pop(true);
+                              await ConvertProcess(context, size, theme);
                             }
                           }
                         : null,
                     onDoubleTap: () {
                       setState(() {
-                         isActiveSaved = !isActiveSaved;
+                        isActiveSaved = !isActiveSaved;
                       });
                     },
                   ),
@@ -511,6 +298,283 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
         ),
       ),
     );
+  }
+
+  Future ConvertProcess(
+      BuildContext context, Size size, ThemeData theme) async {
+    var result = await showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(40),
+            ),
+            color: Colors.white,
+          ),
+          height: MediaQuery.of(context).size.height * 0.31,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20.0),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      "Comment voulez-vous enrégistrer les contacts ",
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                ListTile(
+                  title: Text(
+                    "Garder une copies des anciens numéros",
+                    style: TextStyle(
+                      color: primaryColor,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop(0);
+                    //convertSave(context, size, theme, replaceOld: false);
+                  },
+                ),
+                ListTile(
+                  title: Text(
+                    "Remplacer les anciens numéros",
+                    style: TextStyle(
+                      color: primaryColor,
+                    ),
+                  ),
+                  onTap: () {
+                    Navigator.of(context).pop(1);
+                    //convertSave(context, size, theme, replaceOld: true);
+                  },
+                )
+              ],
+            ),
+          ),
+        );
+      },
+    ).then((value) {
+      print(value);
+      if (value != null && value is int) {
+        convertSave(context, size, theme, replaceOld: value == 1);
+      }
+    });
+
+    if (result != null && result is int) {
+      //convertSave(context, size, theme, replaceOld: result == 1);
+    }
+  }
+
+  Future convertSave(BuildContext context, Size size, ThemeData theme,
+      {replaceOld = true}) async {
+    setState(() {
+      processing = true;
+    });
+    setState(() {
+      textLoading = "Sauvegarde des contacts à convertir";
+    });
+    //await Backup.writeContact(widget.contacts);
+    setState(() {
+      textLoading = "Conversion";
+    });
+
+    for (Contact c in widget.contacts) {
+      setState(() {
+        textLoading =
+            "${c.compositeName ?? c.nameData.firstName ?? c.nameData.middleName ?? c.nameData.surname ?? c.nickName ?? ''}";
+      });
+      //check valid identifier
+      /*checkId:
+              {
+                try {
+                  final contact =
+                      await flC.Contacts.getContact(
+                          c.identifier);
+                  if (contact != null) {
+                    print(
+                        "--------------------------------------------------------------------------");
+                    print(
+                        "| RT identifier: ${contact.unifiedContactId} VS  ${c.identifier}  |");
+                    print(
+                        "| RT middleName: ${contact.middleName} VS  ${c.middleName}  |");
+                    print(
+                        "| RT familyName: ${contact.familyName} VS  ${c.familyName}  |");
+                    print(
+                        "| RT givenName: ${contact.givenName} VS  ${c.givenName}  |");
+                    print(
+                        "| RT phones length: ${contact.phones.length} VS  ${c.phones.length}  |");
+                    print(
+                        "| RT phones: ${contact.phones.map((e) => "${e.label}:${e.value}").join(",")} VS  ${c.phones.map((e) => "${e.label}:${e.value}").join(",")}  |");
+                    print(
+                        "--------------------------------------------------------------------------");
+                  }
+                  if (contact != null &&
+                      contact.unifiedContactId ==
+                          c.identifier &&
+                      c.phones.length ==
+                          contact.phones.length &&
+                      c.phones.every((cPh) => contact.phones
+                          .any((ctPh) =>
+                              (cPh.value == ctPh.value) &&
+                              (cPh.label == ctPh.label)))) {
+                    print(
+                        "------> OK :::::::> ${contact.displayName ?? contact.familyName ?? contact.givenName ?? contact.middleName}");
+                    print(contact.toString());
+                    print(contact.middleName);
+                    print(contact.familyName);
+                    print(contact.givenName);
+                    print(contact.displayName);
+                    print(contact.unifiedContactId);
+                    print(contact.singleContactId);
+                    print(contact.identifier);
+                    break checkId;
+                  } else {
+                    print("BAD ID ${c.identifier}");
+                    await contactWarning(c, size, theme);
+                    continue;
+                  }
+                } catch (e) {
+                  print("BAD ID (catch ex) ${c.identifier}");
+                  await contactWarning(c, size, theme);
+                  continue;
+                }
+              }*/
+
+      setState(() {
+        textLoading =
+            "${c.compositeName ?? c.nameData.firstName ?? c.nameData.middleName ?? c.nameData.surname ?? c.nickName ?? ''}";
+      });
+      List<PhoneNumber> items = new List();
+      for (PhoneNumber i in c.phoneList) {
+        print(i.mainData);
+        String normalizePhoneNumber = PhoneUtils.normalizeNumber(i.mainData);
+        bool isValideOldNumber =
+            PhoneUtils.validateNormalizeOldPhoneNumber(normalizePhoneNumber);
+        if (isValideOldNumber) {
+          String newPhone = PhoneUtils.convert(normalizePhoneNumber);
+          i.mainData = newPhone;
+        }
+        /*if (!items.any((it) =>
+                    it.mainData
+                        .replaceAll("(", "")
+                        .replaceAll("-", "")
+                        .replaceAll(")", "")
+                        .replaceAll("\u202c", "")
+                        .replaceAll("\u202A", "")
+                        .replaceAll(" ", "")
+                        .trim() ==
+                    i.mainData
+                        .replaceAll("(", "")
+                        .replaceAll(")", "")
+                        .replaceAll("-", "")
+                        .replaceAll("\u202c", "")
+                        .replaceAll("\u202A", "")
+                        .replaceAll(" ", "")
+                        .trim())) items.add(i);
+              }*/
+        items.add(i);
+        //await ContactsService.deleteContact(c);
+
+        //verifi identifier
+
+        //dynamic result = await ContactEditor.updateContact(c);
+        //print(result.toString());
+
+      }
+
+      c.phoneList = [];
+      c.phoneList = items;
+      try {
+        dynamic result =
+            await ContactEditor.updateContact(c, replaceOld: replaceOld);
+        print(result.toString());
+      } catch (ex) {}
+    }
+    setState(() {
+      processing = false;
+    });
+
+    await showDialog(
+      context: context,
+      builder: (_) {
+        return AlertDialog(
+          backgroundColor: Colors.transparent,
+          //.withOpacity(0.2),
+          contentPadding: EdgeInsets.all(0.0),
+          content: Container(
+            height: size.height * 0.30,
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20.0),
+            ),
+            //padding: EdgeInsets.all(10.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Container(
+                  width: size.width,
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: Colors.green.withOpacity(0.1),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20.0),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      "Operation terminée !!",
+                      style: theme.textTheme.headline4.copyWith(
+                        color: Colors.green[900],
+                      ),
+                    ),
+                  ),
+                ),
+                Container(
+                  padding: EdgeInsets.all(20),
+                  child: Center(
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      crossAxisAlignment: CrossAxisAlignment.center,
+                      children: [
+                        Text("Vos contacts ont été convertis à 10 chiffres"),
+                      ],
+                    ),
+                  ),
+                ),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    FlatButton(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      child: Text("Ok"),
+                      onPressed: () {
+                        Navigator.of(context).pop(true);
+                      },
+                    )
+                  ],
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+    Navigator.of(context).pop(true);
   }
 
   contactWarning(Contact c, Size size, ThemeData theme) async {
@@ -559,7 +623,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            "${c.displayName ?? c.givenName ?? c.middleName ?? c.familyName} ",
+                            "${c.compositeName ?? c.nameData.firstName ?? c.nameData.middleName ?? c.nameData.surname ?? c.nickName ?? ''} ",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.red[700]),
@@ -572,13 +636,13 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                   margin: const EdgeInsets.all(8.0),
                                   decoration: BoxDecoration(
                                       color: Colors.blueGrey.withOpacity(0.4)),
-                                  child: Text("${c.phones.map(
-                                    (Item phone) {
+                                  child: Text("${c.phoneList.map(
+                                    (PhoneNumber phone) {
                                       //check if ivorian phone number
 
                                       String normalizePhoneNumber =
                                           PhoneUtils.normalizeNumber(
-                                              phone.value);
+                                              phone.mainData);
                                       return normalizePhoneNumber;
                                     },
                                   ).join(" ;")}"),
@@ -620,39 +684,38 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
     bool maj = false;
     bool fail = false;
 
-    List<Item> phones =
-        contact.phones.fold(new List<Item>(), (previousValue, element) {
+    List<PhoneNumber> phones = contact.phoneList.fold(new List<PhoneNumber>(),
+        (previousValue, element) {
       if (!previousValue.any((e) =>
-          element.label == e.label && //1
-         (
-             (element.value
-                  .replaceAll("\u202c", "")
-                  .replaceAll("\u202A", "")
-                  .replaceAll(" ", "")
-                 .replaceAll("-", "")
-                 .replaceAll(")", "")
-                 .replaceAll("(", "")
-                  .trim() ==
-              e.value
-                  .replaceAll("\u202c", "")
-                  .replaceAll("\u202A", "")
-                  .replaceAll(" ", "")
-                  .replaceAll("-", "")
-                  .replaceAll(")", "")
-                  .replaceAll("(", "")
-                  .trim()) //2
+          element.labelName == e.labelName && //1
+          ((element.mainData
+                      .replaceAll("\u202c", "")
+                      .replaceAll("\u202A", "")
+                      .replaceAll(" ", "")
+                      .replaceAll("-", "")
+                      .replaceAll(")", "")
+                      .replaceAll("(", "")
+                      .trim() ==
+                  e.mainData
+                      .replaceAll("\u202c", "")
+                      .replaceAll("\u202A", "")
+                      .replaceAll(" ", "")
+                      .replaceAll("-", "")
+                      .replaceAll(")", "")
+                      .replaceAll("(", "")
+                      .trim()) //2
               ||
-          (PhoneUtils.isIvorianPhone(e.value) &&
-              PhoneUtils.isIvorianPhone(element.value) &&
-              PhoneUtils.normalizeNumber(e.value) ==
-                  PhoneUtils.normalizeNumber(element.value) //2'
-          )))) {
+              (PhoneUtils.isIvorianPhone(e.mainData) &&
+                  PhoneUtils.isIvorianPhone(element.mainData) &&
+                  PhoneUtils.normalizeNumber(e.mainData) ==
+                      PhoneUtils.normalizeNumber(element.mainData) //2'
+              )))) {
         previousValue.add(element);
       }
       return previousValue;
     }).toList();
 
-    contact.phones = phones;
+    contact.phoneList = phones;
     return Padding(
       padding: const EdgeInsets.all(2.0),
       child: InkWell(
@@ -679,94 +742,35 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                 child: ListTile(
                   contentPadding:
                       const EdgeInsets.symmetric(vertical: 2, horizontal: 18),
-                  leading: (contact.avatar != null && contact.avatar.isNotEmpty)
-                      ? CircleAvatar(
-                          backgroundImage: MemoryImage(contact.avatar),
-                          backgroundColor: Colors.grey.withOpacity(0.49),
-                        )
-                      : CircleAvatar(
-                          child: InkWell(
-                            onTap: loadingOperation
-                                ? null
-                                : () async {
-                                    return;
-                                    setState(() {
-                                      loadingOperation = true;
-                                    });
-                                    Contact c = contact;
-                                    List<Item> items = new List();
-                                    for (Item i in c.phones) {
-                                      String normalizePhoneNumber =
-                                          PhoneUtils.normalizeNumber(i.value);
-                                      bool isValideOldNumber = PhoneUtils
-                                          .validateNormalizeOldPhoneNumber(
-                                              normalizePhoneNumber);
-                                      if (isValideOldNumber) {
-                                        String newPhone = PhoneUtils.convert(
-                                            normalizePhoneNumber);
-                                        i.value = newPhone;
-                                      }
-                                      if (!items.any((it) =>
-                                          it.value
-                                              .replaceAll("\u202c", "")
-                                              .replaceAll("\u202A", "")
-                                              .replaceAll(" ", "")
-                                              .trim() ==
-                                          i.value
-                                              .replaceAll("\u202c", "")
-                                              .replaceAll("\u202A", "")
-                                              .replaceAll(" ", "")
-                                              .trim())) items.add(i);
-                                    }
-                                    c.phones = [];
-                                    c.phones = items;
-                                    try {
-                                      dynamic resultUpdate =
-                                          await ContactsService.updateContact(
-                                              c);
-                                      print(resultUpdate);
-                                      dynamic resultForm = await ContactsService
-                                          .openExistingContact(c);
-                                      print(resultForm);
-                                      setState(() {
-                                        maj = true;
-                                      });
-                                      _scaffoldKey.currentState.showSnackBar(
-                                          new SnackBar(
-                                              content:
-                                                  Text("Contact mis à jour")));
-                                    } catch (e) {
-                                      _scaffoldKey.currentState.showSnackBar(
-                                          new SnackBar(
-                                              content:
-                                                  Text("Contact mis à jour")));
-                                    }
-
-                                    setState(() {
-                                      loadingOperation = false;
-                                    });
-                                  },
-                            child: loadingOperation
-                                ? Container(
-                                    height: 30,
-                                    width: 30,
-                                    child: Row(
-                                      children: [CircularProgressIndicator()],
-                                    ),
-                                  )
-                                : Icon(
-                                    CupertinoIcons.person,
-                                    size: 26,
-                                    color: Colors.white,
-                                  ),
-                          ),
-                          backgroundColor: Colors.grey.withOpacity(0.26),
-                        ),
+                  leading: CircleAvatar(
+                    child: InkWell(
+                      onTap: loadingOperation
+                          ? null
+                          : () async {
+                              return;
+                            },
+                      child: loadingOperation
+                          ? Container(
+                              height: 30,
+                              width: 30,
+                              child: Row(
+                                children: [CircularProgressIndicator()],
+                              ),
+                            )
+                          : Icon(
+                              CupertinoIcons.person,
+                              size: 26,
+                              color: Colors.white,
+                            ),
+                    ),
+                    backgroundColor: Colors.grey.withOpacity(0.26),
+                  ),
                   title: Text(
-                    contact.displayName ??
-                        contact.familyName ??
-                        contact.middleName ??
-                        contact.givenName ??
+                    contact.compositeName ??
+                        contact.nameData.firstName ??
+                        contact.nameData.middleName ??
+                        contact.nameData.surname ??
+                        contact.nickName ??
                         '',
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
@@ -774,12 +778,12 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                   ),
                   subtitle: Column(
                     children: [
-                      ...contact.phones.map(
-                        (Item phone) {
+                      ...contact.phoneList.map(
+                        (PhoneNumber phone) {
                           //check if ivorian phone number
 
                           String normalizePhoneNumber =
-                              PhoneUtils.normalizeNumber(phone.value);
+                              PhoneUtils.normalizeNumber(phone.mainData);
                           bool isValideOldNumber =
                               PhoneUtils.validateNormalizeOldPhoneNumber(
                                   normalizePhoneNumber);
@@ -802,7 +806,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                       mainAxisAlignment:
                                           MainAxisAlignment.spaceBetween,
                                       children: [
-                                        Expanded(child: Text(phone.value)),
+                                        Expanded(child: Text(phone.mainData)),
                                         Icon(
                                           CupertinoIcons.arrowtriangle_right,
                                           size: 9,
@@ -875,8 +879,16 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                                         ),
                                                       if (!PhoneUtils.isNewPhone(
                                                           normalizePhoneNumber))
-                                                        Text(
-                                                            "${normalizePhoneNumber}"),
+                                                        Flexible(
+                                                          fit: FlexFit.loose,
+                                                          child: Text(
+                                                            "${normalizePhoneNumber}",
+                                                            softWrap: false,
+                                                            overflow:
+                                                                TextOverflow
+                                                                    .fade,
+                                                          ),
+                                                        ),
                                                     ],
                                                   ),
                                               ],
@@ -886,8 +898,8 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                                       ],
                                     )
                                   : Container(),
-                              if (contact.phones.toList().indexOf(phone) !=
-                                  contact.phones.length - 1)
+                              if (contact.phoneList.toList().indexOf(phone) !=
+                                  contact.phoneList.length - 1)
                                 Divider(),
                             ],
                           );

@@ -1,4 +1,4 @@
-import 'package:contacts_service/contacts_service.dart';
+ import 'package:contact_editor/contact_editor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/NumerotationApp.dart';
@@ -53,7 +53,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
 
   TextEditingController _ctrlSearch = new TextEditingController();
 
-  List<String> _selectedContact = [];
+  List<int> _selectedContact = [];
 
   bool selectionState = true;
   bool loaindActionProcess = false;
@@ -77,14 +77,29 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
     if (await Permission.contacts.request().isGranted) {
       //We already have permissions for contact when we get to this page, so we
       // are now just retrieving it
-      Iterable<Contact> contactsAll =
-          await ContactsService.getContacts(withThumbnails: false);
+      List<Contact> contactsAll =
+          await ContactEditor.getContacts;
       Iterable<Contact> contacts = contactsAll;
       if (contacts.isNotEmpty) {
         contacts = contacts.where((element) =>
-            element.phones.isNotEmpty &&
-            element.phones.any((phone) =>
-            PhoneUtils.isIvorianOldPhone(phone.value)));
+            element.phoneList.isNotEmpty &&
+            element.phoneList.any((phone) =>
+            PhoneUtils.isIvorianOldPhone(phone.mainData)) && !element.phoneList.every((phone)
+                {
+
+                  return element.phoneList.any((p){
+                    if(PhoneUtils.isIvorianNewPhone(phone.mainData))
+                      return true ;
+                    bool haveAlreadyAlreadyContactConvert = false;
+
+                    haveAlreadyAlreadyContactConvert =
+                        PhoneUtils.isIvorianNewPhone(p.mainData)
+                    &&  PhoneUtils.normalizeNumber(PhoneUtils.reverse(p.mainData))==PhoneUtils.normalizeNumber(phone.mainData);
+
+                    return haveAlreadyAlreadyContactConvert;
+                  });
+                }
+            ));
       }
 
       print("------------------- ");
@@ -224,20 +239,20 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                   print("$value");
                                   _contacts = null;
                                   _contacts = _contactsAll.where((c) =>
-                                      (c.familyName ?? "")
+                                      (c.nameData.firstName ?? "")
                                           .toLowerCase()
                                           .contains(value.toLowerCase()) ||
-                                      (c.middleName ?? "")
+                                      (c.nameData.middleName ?? "")
                                           .toLowerCase()
                                           .contains(value.toLowerCase()) ||
-                                      (c.givenName ?? "")
+                                      (c.nameData.surname ?? "")
                                           .toLowerCase()
                                           .contains(value.toLowerCase()) ||
-                                      (c.displayName ?? "")
+                                      (c.nickName ?? "")
                                           .toLowerCase()
                                           .contains(value.toLowerCase()) ||
-                                      c.phones
-                                          .any((p) => p.value.contains(value)));
+                                      c.phoneList
+                                          .any((p) => p.mainData.contains(value)));
 
                                   setState(() {});
                                 },
@@ -946,7 +961,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                 ),
                         ),
                       ),
-                      Expanded(
+                      if(false)Expanded(
                         flex: 4,
                         child: FlatButton(
                           onPressed: _selectedContact.length > 0
@@ -1025,12 +1040,12 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                             itemBuilder: (BuildContext context, int index) {
                               Contact contact = _contacts?.elementAt(index);
 
-                              List<Item> phones =
-                              contact.phones.fold(new List<Item>(), (previousValue, element) {
+                              List<PhoneNumber> phones =
+                              contact.phoneList.fold(new List<PhoneNumber>(), (previousValue, element) {
                                 if (!previousValue.any((e) =>
-                                element.label == e.label && //1
+                                element.labelName == e.labelName && //1
                                     (
-                                        (element.value
+                                        (element.mainData
                                             .replaceAll("(", "")
                                             .replaceAll(")", "")
                                             .replaceAll("-", "")
@@ -1038,7 +1053,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                             .replaceAll("\u202A", "")
                                             .replaceAll(" ", "")
                                             .trim() ==
-                                            e.value
+                                            e.mainData
                                                 .replaceAll("(", "")
                                                 .replaceAll(")", "")
                                                 .replaceAll("-", "")
@@ -1047,16 +1062,16 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                                 .replaceAll(" ", "")
                                                 .trim()) //2
                                             ||
-                                            (PhoneUtils.isIvorianPhone(e.value) &&
-                                                PhoneUtils.isIvorianPhone(element.value) &&
-                                                PhoneUtils.normalizeNumber(e.value) ==
-                                                    PhoneUtils.normalizeNumber(element.value) //2'
+                                            (PhoneUtils.isIvorianPhone(e.mainData) &&
+                                                PhoneUtils.isIvorianPhone(element.mainData) &&
+                                                PhoneUtils.normalizeNumber(e.mainData) ==
+                                                    PhoneUtils.normalizeNumber(element.mainData) //2'
                                             )))) {
                                   previousValue.add(element);
                                 }
                                 return previousValue;
                               }).toList();
-                              contact.phones = phones;
+                              contact.phoneList = phones;
                               return Container(
                                 decoration: BoxDecoration(
                                   color: Colors.white,
@@ -1088,15 +1103,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                             vertical: 2,
                                             horizontal: 10,
                                           ),
-                                          leading: (contact.avatar != null &&
-                                                  contact.avatar.isNotEmpty)
-                                              ? CircleAvatar(
-                                                  backgroundImage: MemoryImage(
-                                                      contact.avatar),
-                                                  backgroundColor: Colors.grey
-                                                      .withOpacity(0.49),
-                                                )
-                                              : CircleAvatar(
+                                          leading: CircleAvatar(
                                                   child: Icon(
                                                     CupertinoIcons.person_solid,
                                                     size: 26,
@@ -1106,10 +1113,11 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                                       .withOpacity(0.26),
                                                 ),
                                           title: Text(
-                                            contact.displayName ??
-                                                contact.familyName ??
-                                                contact.middleName ??
-                                                contact.givenName ??
+                                                contact.compositeName ??
+                                            contact.nameData.firstName ??
+                                                contact.nameData.middleName ??
+                                                contact.nameData.surname ??
+                                                contact.nickName ??
                                                 '',
                                             style: TextStyle(
                                               color: Colors.black,
@@ -1120,14 +1128,14 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                             mainAxisAlignment:
                                                 MainAxisAlignment.spaceBetween,
                                             children: [
-                                              Text(contact.phones.isNotEmpty
-                                                  ? contact.phones.first.value
-                                                  : contact.emails.isNotEmpty
+                                              Text(contact.phoneList.isNotEmpty
+                                                  ? contact.phoneList.first.mainData
+                                                  : contact.emailList.isNotEmpty
                                                       ? contact
-                                                          .emails.first.value
+                                                          .emailList.first.mainData
                                                       : ""),
                                               Text(
-                                                "${contact.phones.length} numéro(s)",
+                                                "${contact.phoneList.length} numéro(s)",
                                                 style: TextStyle(fontSize: 9),
                                               )
                                             ],
@@ -1143,10 +1151,8 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                               onChanged: (value) {
                                                 selectedItem(value, contact);
                                               },
-                                              value: _selectedContact.indexOf(
-                                                      contact.identifier
-                                                          .trim()) >=
-                                                  0,
+                                              value: _selectedContact.contains(
+                                                      contact.contactId) ,
                                             ),
                                           ),
                                         ),
@@ -1208,7 +1214,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
               RouterGenerator.convert,
               arguments: _contacts
                   .where((element) =>
-                      _selectedContact.contains(element.identifier))
+                      _selectedContact.contains(element.contactId))
                   .toList(),
             );
           },
@@ -1381,7 +1387,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
             ),
             color: Colors.white,
           ),
-          height: MediaQuery.of(context).size.height * 0.61,
+          height: MediaQuery.of(context).size.height * 0.41,
           child: SingleChildScrollView(
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
@@ -1418,7 +1424,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                         '''Partagez Passe à 10 \n Une application pour vous permettre de migrer tous vos contacts au 31 janvier 2021. \nElle est totalement gratuite et ne collecte aucunes de vos données personnelles \n*Cliquez sur le lien pour télécharger sur google play* : https://play.google.com/store/apps/details?id=com.flutter.fute.numerotation''');
                   },
                 ),
-                ListTile(
+                if(false)ListTile(
                   leading: Icon(Icons.backup),
                   title: Text(
                     "${allTranslations.text("menu_create_backup")}",
@@ -1434,7 +1440,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                         }
                       : null,
                 ),
-                ListTile(
+               if(false) ListTile(
                   leading: Icon(Icons.restore),
                   title: Text(
                     "${allTranslations.text("menu_restore_backup")}",
@@ -1443,8 +1449,8 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                     ),
                   ),
                   onTap: () async {
-                    Backup b = new Backup(context);
-                    await b.getBackup();
+                    //Backup b = new Backup(context);
+                   // await b.getBackup();
                   },
                 ),
                 ListTile(
@@ -1502,7 +1508,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
       _selectedContact.clear();
     } else {
       _selectedContact.clear();
-      _selectedContact.addAll(_contacts.map((e) => e.identifier).toList());
+      _selectedContact.addAll(_contacts.map((e) => e.contactId).toList());
     }
 
     setState(() {
@@ -1513,18 +1519,18 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
   void selectedItem(value, Contact contact) {
     //print("value : $value");
     //print("contact.identifier : ${contact.identifier}");
-    if (_selectedContact.indexOf(contact.identifier.trim()) >= 0) {
+    if (_selectedContact.contains(contact.contactId)) {
       _selectedContact
-          .removeAt(_selectedContact.indexOf(contact.identifier.trim()));
+          .removeAt(_selectedContact.indexOf(contact.contactId));
     } else {
-      _selectedContact.add(contact.identifier.trim());
+      _selectedContact.add(contact.contactId);
     }
     setState(() {});
   }
 
   Future<void> createBackup() async {
     List<Contact> elements = _contacts
-        .where((element) => _selectedContact.contains(element.identifier))
+        .where((element) => _selectedContact.contains(element.contactId))
         .toList();
 
     if (elements == null || elements.length < 1) {
@@ -1616,8 +1622,8 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
         });
 
     if (result != null && result == true) {
-      Backup b = new Backup(context);
-      b.newBackup(elements);
+      //Backup b = new Backup(context);
+      //b.newBackup(elements);
     }
   }
 }

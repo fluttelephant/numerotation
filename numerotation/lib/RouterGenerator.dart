@@ -1,4 +1,4 @@
-import 'package:contacts_service/contacts_service.dart';
+import 'package:contact_editor/contact_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/activities/AboutActivity.dart';
 import 'package:numerotation/activities/BackTo8Activity.dart';

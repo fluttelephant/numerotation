@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:contacts_service/contacts_service.dart';
+import 'package:contact_editor/contact_editor.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/core/GlobalTranslations.dart';
 import 'package:numerotation/core/utils/theme.dart';
@@ -9,7 +9,7 @@ import 'package:path_provider/path_provider.dart';
 import 'dart:convert';
 import 'package:intl/intl.dart';
 import 'dart:io' as io;
-
+/*
 class Backup {
   final BuildContext context;
   List<File> backupfiles = new List();
@@ -272,7 +272,12 @@ class Backup {
                                   allcontactsAll.indexOf(snapshot.data) <
                                       allcontactsAll.length - 1)
                           ? Text(
-                              "conversion de ${snapshot.hasData && snapshot.data != null ? snapshot.data.displayName ?? snapshot.data.middleName : ""}",
+                              "conversion de ${ snapshot.compositeName ??
+                                  snapshot.nameData.firstName ??
+                                  snapshot.nameData.middleName ??
+                                  snapshot.nameData.surname ??
+                                  snapshot.nickName ??
+                                  ''}",
                               style: TextStyle(
                                 fontSize: 12.0,
                               ),
@@ -443,4 +448,4 @@ class Backup {
       );
     });
   }
-}
+}*/

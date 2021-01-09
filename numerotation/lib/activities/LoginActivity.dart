@@ -32,7 +32,9 @@ class _LoginActivityState extends State<LoginActivity> {
   void initState() {
     // TODO: implement initState
     super.initState();
-
+    userContactName= App.prefs.getString(
+        storageKey + PREF_USER_NAME);
+    ctr_userName = new TextEditingController(text: userContactName);
     userPhone = App.prefs.getString(storageKey + PREF_USER_PHONE_NUMBER);
   }
 

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:contacts_service/contacts_service.dart';
+import 'package:contact_editor/contact_editor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/core/GlobalTranslations.dart';
@@ -134,15 +134,7 @@ class _ExportScreenActivityState extends State<ExportScreenActivity> {
                                 child: ListTile(
                                   contentPadding: const EdgeInsets.symmetric(
                                       vertical: 2, horizontal: 18),
-                                  leading: (contact.avatar != null &&
-                                          contact.avatar.isNotEmpty)
-                                      ? CircleAvatar(
-                                          backgroundImage:
-                                              MemoryImage(contact.avatar),
-                                          backgroundColor:
-                                              Colors.grey.withOpacity(0.49),
-                                        )
-                                      : CircleAvatar(
+                                  leading: CircleAvatar(
                                           child: Icon(
                                             CupertinoIcons.person_solid,
                                             size: 26,
@@ -151,10 +143,11 @@ class _ExportScreenActivityState extends State<ExportScreenActivity> {
                                           backgroundColor:
                                               Colors.grey.withOpacity(0.26),
                                         ),
-                                  title: Text(contact.displayName ??
-                                      contact.familyName ??
-                                      contact.middleName ??
-                                      contact.givenName ??
+                                  title: Text( contact.compositeName ??
+                                      contact.nameData.firstName ??
+                                      contact.nameData.middleName ??
+                                      contact.nameData.surname ??
+                                      contact.nickName ??
                                       ''),
                                   subtitle: Column(
                                     children: [
@@ -167,7 +160,7 @@ class _ExportScreenActivityState extends State<ExportScreenActivity> {
                                           ),
                                           Expanded(
                                               child: Text(
-                                                  "Phones : ${contact.phones.map((e) => e.value).join("; ")}")),
+                                                  "Phones : ${contact.phoneList.map((e) => e.mainData).join("; ")}")),
                                         ],
                                       ),
                                       Row(
@@ -179,7 +172,7 @@ class _ExportScreenActivityState extends State<ExportScreenActivity> {
                                           ),
                                           Expanded(
                                               child: Text(
-                                                  "Emails : ${contact.emails.map((e) => e.value).join("; ")}")),
+                                                  "Emails : ${contact.emailList.map((e) => e.mainData).join("; ")}")),
                                         ],
                                       )
                                     ],

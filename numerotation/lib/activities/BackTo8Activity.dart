@@ -1,4 +1,4 @@
-import 'package:contacts_service/contacts_service.dart';
+import 'package:contact_editor/contact_editor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/core/utils/Backup.dart';
@@ -25,6 +25,7 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
   List<String> _selectedContact = [];
 
   bool processing = false;
+  int indexLoading = -1;
   bool permissionDenied = false;
   bool isActiveSaved = false;
   String textLoading = "...";
@@ -33,6 +34,7 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
 
   Future<void> getContacts() async {
     setState(() {
+      indexLoading = -1;
       processing = true;
       _contacts = null;
       _selectedContact = [];
@@ -41,38 +43,38 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
     if (await Permission.contacts.request().isGranted) {
       //We already have permissions for contact when we get to this page, so we
       // are now just retrieving it
-      Iterable<Contact> contactsAll = await ContactsService.getContacts(
-        withThumbnails: false,
-      );
+      Iterable<Contact> contactsAll = await ContactEditor.getContacts;
       Iterable<Contact> contacts = contactsAll;
       if (contacts.isNotEmpty) {
         contacts = contacts
             .where((element) =>
-                element.phones.isNotEmpty &&
-                element.phones.any((phone) =>
-                    (phone.value.contains("+225") &&
-                        (phone.value.replaceAll(" ", "").trim()).length == 14 &&
-                        !phone.value.contains("\u202c") &&
-                        !phone.value.contains("\u202A")) ||
-                    (phone.value.contains("+225") &&
-                        (phone.value.replaceAll(" ", "").trim()).length == 16 &&
-                        phone.value.contains("\u202c") &&
-                        phone.value.contains("\u202A")) ||
-                    (phone.value.indexOf("00225") == 0 &&
-                        (phone.value.replaceAll(" ", "").trim()).length ==
+                element.phoneList.isNotEmpty &&
+                element.phoneList.any((phone) =>
+                    (phone.mainData.contains("+225") &&
+                        (phone.mainData.replaceAll(" ", "").trim()).length ==
+                            14 &&
+                        !phone.mainData.contains("\u202c") &&
+                        !phone.mainData.contains("\u202A")) ||
+                    (phone.mainData.contains("+225") &&
+                        (phone.mainData.replaceAll(" ", "").trim()).length ==
+                            16 &&
+                        phone.mainData.contains("\u202c") &&
+                        phone.mainData.contains("\u202A")) ||
+                    (phone.mainData.indexOf("00225") == 0 &&
+                        (phone.mainData.replaceAll(" ", "").trim()).length ==
                             15) ||
                     //!phone.value.contains("+") ||
-                    (phone.value.replaceAll(" ", "").trim().length == 10 &&
-                        !phone.value.contains("+") &&
-                        phone.value.indexOf("00225") != 0 &&
-                        !phone.value.contains("\u202c") &&
-                        !phone.value.contains("\u202A")) ||
+                    (phone.mainData.replaceAll(" ", "").trim().length == 10 &&
+                        !phone.mainData.contains("+") &&
+                        phone.mainData.indexOf("00225") != 0 &&
+                        !phone.mainData.contains("\u202c") &&
+                        !phone.mainData.contains("\u202A")) ||
                     //!phone.value.contains("+") ||
-                    (phone.value.replaceAll(" ", "").trim().length == 12 &&
-                        !phone.value.contains("+") &&
-                        phone.value.indexOf("00225") != 0 &&
-                        phone.value.contains("\u202c") &&
-                        phone.value.contains("\u202A"))))
+                    (phone.mainData.replaceAll(" ", "").trim().length == 12 &&
+                        !phone.mainData.contains("+") &&
+                        phone.mainData.indexOf("00225") != 0 &&
+                        phone.mainData.contains("\u202c") &&
+                        phone.mainData.contains("\u202A"))))
             .toList();
       }
       setState(() {
@@ -172,7 +174,7 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
               ),
             ),
             Expanded(
-              child: processing
+              child: processing && indexLoading<0
                   //Build a list view of all contacts, displaying their avatar and
                   // display name
                   ? Center(
@@ -192,9 +194,6 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                           itemCount: _contacts?.length ?? 0,
                           itemBuilder: (BuildContext context, int index) {
                             Contact contact = _contacts?.elementAt(index);
-
-                            print(
-                                "---------- BEGIN ${contact.displayName ?? contact.familyName ?? contact.middleName ?? contact.givenName ?? ''} --------------");
 
                             return InkWell(
                               child: Container(
@@ -223,52 +222,136 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                         contentPadding:
                                             const EdgeInsets.symmetric(
                                                 vertical: 2, horizontal: 18),
-                                        leading: (contact.avatar != null &&
-                                                contact.avatar.isNotEmpty)
-                                            ? CircleAvatar(
-                                                backgroundImage:
-                                                    MemoryImage(contact.avatar),
-                                                backgroundColor: Colors.grey
-                                                    .withOpacity(0.49),
-                                              )
-                                            : CircleAvatar(
-                                                child: Icon(
-                                                  CupertinoIcons.person_solid,
-                                                  size: 26,
-                                                  color: Colors.white,
-                                                ),
-                                                backgroundColor: Colors.grey
-                                                    .withOpacity(0.26),
-                                              ),
-                                        title: Text(contact.displayName ??
-                                            contact.familyName ??
-                                            contact.middleName ??
-                                            contact.givenName ??
+                                        leading: CircleAvatar(
+                                          child: InkWell(
+                                            child: Center(
+                                              child: processing &&
+                                                      _contacts.indexOf(
+                                                              contact) ==
+                                                          indexLoading
+                                                  ? Row(
+                                                      mainAxisAlignment:
+                                                          MainAxisAlignment
+                                                              .center,
+                                                      children: [
+                                                        Container(
+                                                          height: 30,
+                                                          width: 30,
+                                                          child:
+                                                              CircularProgressIndicator(),
+                                                        )
+                                                      ],
+                                                    )
+                                                  : Icon(
+                                                      Icons.restore,
+                                                      size: 26,
+                                                      color: Colors.white,
+                                                    ),
+                                            ),
+                                            onTap: processing
+                                                ? null
+                                                : () async {
+                                                    Contact c = contact;
+                                                    setState(() {
+                                                      processing = true;
+                                                      indexLoading = _contacts
+                                                          .indexOf(contact);
+                                                    });
+                                                    setState(() {
+                                                      textLoading =
+                                                          "Sauvegarde des contacts à convertir";
+                                                    });
+                                                    //await Backup.writeContact(_contacts);
+                                                    setState(() {
+                                                      textLoading =
+                                                          "Conversion";
+                                                    });
+
+                                                    setState(() {
+                                                      textLoading =
+                                                          "${c.compositeName ?? c.nameData.firstName ?? c.nameData.middleName ?? c.nameData.surname ?? c.nickName ?? ''}";
+                                                    });
+                                                    List<PhoneNumber> items =
+                                                        new List();
+                                                    for (PhoneNumber i
+                                                        in c.phoneList) {
+                                                      bool isNewPhoneNumber =
+                                                          PhoneUtils
+                                                              .isIvorianNewPhone(
+                                                                  i.mainData);
+                                                      print(
+                                                          "${i.mainData} --> $isNewPhoneNumber");
+                                                      if (isNewPhoneNumber) {
+                                                        setState(() {
+                                                          textLoading =
+                                                              "reverse ${i.mainData}";
+                                                        });
+                                                        String
+                                                            normalizePhoneNumber =
+                                                            PhoneUtils
+                                                                .normalizeNumber(
+                                                                    i.mainData);
+                                                        String newPhone =
+                                                            PhoneUtils.reverse(
+                                                                normalizePhoneNumber);
+                                                        i.mainData = newPhone;
+                                                        print(
+                                                            "$normalizePhoneNumber --> $newPhone");
+                                                      }
+
+                                                      items.add(i);
+                                                    }
+                                                    c.phoneList = [];
+                                                    c.phoneList = items;
+                                                    //await ContactsService.deleteContact(c);
+                                                    await ContactEditor
+                                                        .updateContact(c,
+                                                            replaceOld: true);
+
+                                                    getContacts();
+                                                    _scaffoldKey.currentState
+                                                        .showSnackBar(
+                                                            new SnackBar(
+                                                      content: Text(
+                                                          "Opération éffectuée"),
+                                                      backgroundColor:
+                                                          Colors.green,
+                                                    ));
+                                                  },
+                                          ),
+                                          backgroundColor:
+                                              Colors.grey.withOpacity(0.26),
+                                        ),
+                                        title: Text(contact.compositeName ??
+                                            contact.nameData.firstName ??
+                                            contact.nameData.middleName ??
+                                            contact.nameData.surname ??
+                                            contact.nickName ??
                                             ''),
                                         subtitle: Column(
                                           children: [
-                                            ...contact.phones.map(
-                                              (Item phone) {
+                                            ...contact.phoneList.map(
+                                              (PhoneNumber phone) {
                                                 print(
-                                                    "------------------ ${contact.displayName ?? contact.familyName ?? contact.middleName ?? contact.givenName ?? ""} ------------------");
-                                                print(phone.value);
+                                                    "------------------ ${contact.compositeName ?? contact.nameData.firstName ?? contact.nameData.middleName ?? contact.nameData.surname ?? contact.nickName ?? ''} ------------------");
+                                                print(phone.mainData);
 
                                                 bool isIvPhoneNumber =
                                                     PhoneUtils.isIvorianPhone(
-                                                        phone.value);
+                                                        phone.mainData);
 
                                                 print(
                                                     "isIvPhoneNumber $isIvPhoneNumber");
                                                 bool isNewIvPhoneNumber =
                                                     PhoneUtils
                                                         .isIvorianNewPhone(
-                                                            phone.value);
+                                                            phone.mainData);
 
                                                 print(
                                                     "isNewIvPhoneNumber $isNewIvPhoneNumber");
                                                 String normalizePhoneNumber =
                                                     PhoneUtils.normalizeNumber(
-                                                        phone.value);
+                                                        phone.mainData);
 
                                                 print(
                                                     "normalizePhoneNumber $normalizePhoneNumber");
@@ -338,8 +421,17 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                                                               .bold,
                                                                     ),
                                                                   ),
-                                                                  Text(
-                                                                      "${phoneIv}"),
+                                                                  Row(
+                                                                    children: [
+                                                                      Text(
+                                                                        "${phoneIv}",
+                                                                        softWrap:
+                                                                            false,
+                                                                        overflow:
+                                                                            TextOverflow.fade,
+                                                                      ),
+                                                                    ],
+                                                                  ),
                                                                 ],
                                                               ),
                                                             ),
@@ -350,9 +442,15 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                                             size: 9,
                                                           ),
                                                           Expanded(
-                                                            child: Text(PhoneUtils
-                                                                .reverse(phone
-                                                                    .value)),
+                                                            child: Text(
+                                                              PhoneUtils
+                                                                  .reverse(phone
+                                                                      .mainData),
+                                                              softWrap: false,
+                                                              overflow:
+                                                                  TextOverflow
+                                                                      .fade,
+                                                            ),
                                                           ),
                                                         ],
                                                       );
@@ -526,7 +624,7 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                 textLoading =
                                     "Sauvegarde des contacts à convertir";
                               });
-                              await Backup.writeContact(_contacts);
+                              //await Backup.writeContact(_contacts);
                               setState(() {
                                 textLoading = "Conversion";
                               });
@@ -534,7 +632,7 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                               for (Contact c in _contacts) {
                                 setState(() {
                                   textLoading =
-                                      "${c.displayName ?? c.familyName ?? c.givenName ?? c.middleName}";
+                                      "${c.compositeName ?? c.nameData.firstName ?? c.nameData.middleName ?? c.nameData.surname ?? c.nickName ?? ''}";
                                 });
 
                                 //check valid identifier
@@ -572,42 +670,44 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                     continue;
                                   }
                                 }*/
-                                List<Item> items = new List();
-                                for (Item i in c.phones) {
+                                List<PhoneNumber> items = new List();
+                                for (PhoneNumber i in c.phoneList) {
                                   bool isNewPhoneNumber =
-                                      PhoneUtils.isIvorianNewPhone(i.value);
-                                  print("${i.value} --> $isNewPhoneNumber");
+                                      PhoneUtils.isIvorianNewPhone(i.mainData);
+                                  print("${i.mainData} --> $isNewPhoneNumber");
                                   if (isNewPhoneNumber) {
                                     setState(() {
-                                      textLoading = "reverse ${i.value}";
+                                      textLoading = "reverse ${i.mainData}";
                                     });
                                     String normalizePhoneNumber =
-                                        PhoneUtils.normalizeNumber(i.value);
+                                        PhoneUtils.normalizeNumber(i.mainData);
                                     String newPhone = PhoneUtils.reverse(
                                         normalizePhoneNumber);
-                                    i.value = newPhone;
+                                    i.mainData = newPhone;
                                     print(
                                         "$normalizePhoneNumber --> $newPhone");
                                   }
 
                                   //phone.value.contains("\u202c") &&
                                   //                         !phone.value.contains("\u202A")
-                                  if (!items.any((it) =>
-                                      it.value
+                                  /*if (!items.any((it) =>
+                                      it.mainData
                                           .replaceAll("\u202c", "")
                                           .replaceAll("\u202A", "")
                                           .replaceAll(" ", "")
                                           .trim() ==
-                                      i.value
+                                      i.mainData
                                           .replaceAll("\u202c", "")
                                           .replaceAll("\u202A", "")
                                           .replaceAll(" ", "")
-                                          .trim())) items.add(i);
+                                          .trim()))*/
+                                  items.add(i);
                                 }
-                                c.phones = [];
-                                c.phones = items;
+                                c.phoneList = [];
+                                c.phoneList = items;
                                 //await ContactsService.deleteContact(c);
-                                await ContactsService.updateContact(c);
+                                await ContactEditor.updateContact(c,
+                                    replaceOld: true);
                               }
 
                               setState(() {
@@ -754,7 +854,7 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                         crossAxisAlignment: CrossAxisAlignment.center,
                         children: [
                           Text(
-                            "${c.displayName ?? c.givenName ?? c.middleName ?? c.familyName} ",
+                            "${c.compositeName ?? c.nameData.firstName ?? c.nameData.middleName ?? c.nameData.surname ?? c.nickName ?? ''} ",
                             style: TextStyle(
                                 fontWeight: FontWeight.bold,
                                 color: Colors.red[700]),
@@ -769,13 +869,13 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                     color: Colors.blue.withOpacity(0.3),
                                     borderRadius: BorderRadius.circular(10),
                                   ),
-                                  child: Text("${c.phones.map(
-                                    (Item phone) {
+                                  child: Text("${c.phoneList.map(
+                                    (PhoneNumber phone) {
                                       //check if ivorian phone number
 
                                       String normalizePhoneNumber =
                                           PhoneUtils.normalizeNumber(
-                                              phone.value);
+                                              phone.mainData);
                                       return normalizePhoneNumber;
                                     },
                                   ).join(" ;")}"),

@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.7+8
+version: 1.0.8+9
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -23,7 +23,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   flutter_localizations:
     sdk: flutter
 
@@ -38,8 +37,12 @@ dependencies:
 
   flutter_html: ^1.1.1
   permission_handler: ^5.0.1+1
-  contacts_service: ^0.4.6
+  # contacts_service: ^0.4.6
   url_launcher: ^5.4.2
+
+  contact_editor:
+    git: https://gitlab.com/guyaristide/contact-editor-flutter-plugin.git
+
 
 dev_dependencies:
   flutter_test:
