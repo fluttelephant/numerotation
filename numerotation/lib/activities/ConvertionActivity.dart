@@ -69,7 +69,16 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                 //mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Row(
-                    children: [BackButton(), AppTitleWidget()],
+                    children: [
+                      BackButton(
+                        onPressed: processing
+                            ? null
+                            : () {
+                                Navigator.of(context).pop();
+                              },
+                      ),
+                      AppTitleWidget()
+                    ],
                   ),
                   Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -113,7 +122,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
               ),
             ),
             Expanded(
-              child: widget.contacts != null
+              child: widget.contacts != null && !processing
                   //Build a list view of all contacts, displaying their avatar and
                   // display name
                   ? ListView.builder(
@@ -147,7 +156,16 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
             child: processing
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [Text("$textLoading ...")],
+                    children: [
+                      Text(
+                        "$textLoading ...",
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      )
+                    ],
                   )
                 : InkWell(
                     child: febrary2021.isBefore(DateTime.now()) || isActiveSaved
@@ -189,7 +207,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                     onTap: febrary2021.isBefore(DateTime.now()) || isActiveSaved
                         ? () async {
                             //warning
-                            await ConvertProcess(context, size, theme);
+                            ConvertProcess(context, size, theme);
                             return;
                             bool result = await showDialog(
                               context: context,
@@ -367,7 +385,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
         );
       },
     ).then((value) {
-      print(value);
+      //print(value);
       if (value != null && value is int) {
         convertSave(context, size, theme, replaceOld: value == 1);
       }
@@ -382,12 +400,9 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
       {replaceOld = true}) async {
     setState(() {
       processing = true;
-    });
-    setState(() {
+
       textLoading = "Sauvegarde des contacts à convertir";
-    });
-    //await Backup.writeContact(widget.contacts);
-    setState(() {
+
       textLoading = "Conversion";
     });
 
@@ -453,13 +468,9 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
                 }
               }*/
 
-      setState(() {
-        textLoading =
-            "${c.compositeName ?? c.nameData.firstName ?? c.nameData.middleName ?? c.nameData.surname ?? c.nickName ?? ''}";
-      });
       List<PhoneNumber> items = new List();
       for (PhoneNumber i in c.phoneList) {
-        print(i.mainData);
+        //print(i.mainData);
         String normalizePhoneNumber = PhoneUtils.normalizeNumber(i.mainData);
         bool isValideOldNumber =
             PhoneUtils.validateNormalizeOldPhoneNumber(normalizePhoneNumber);
@@ -500,7 +511,7 @@ class _ConvertionActivityState extends State<ConvertionActivity> {
       try {
         dynamic result =
             await ContactEditor.updateContact(c, replaceOld: replaceOld);
-        print(result.toString());
+        //print(result.toString());
       } catch (ex) {}
     }
     setState(() {

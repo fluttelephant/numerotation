@@ -51,12 +51,24 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                 element.phoneList.isNotEmpty &&
                 element.phoneList.any((phone) =>
                     (phone.mainData.contains("+225") &&
-                        (phone.mainData.replaceAll(" ", "").trim()).length ==
+                        (phone.mainData
+                                    .replaceAll(" ", "")
+                                    .replaceAll(",", "")
+                                    .replaceAll(".", "")
+                                    .replaceAll("-", "")
+                                    .trim())
+                                .length ==
                             14 &&
                         !phone.mainData.contains("\u202c") &&
                         !phone.mainData.contains("\u202A")) ||
                     (phone.mainData.contains("+225") &&
-                        (phone.mainData.replaceAll(" ", "").trim()).length ==
+                        (phone.mainData
+                                    .replaceAll(" ", "")
+                                    .replaceAll(",", "")
+                                    .replaceAll(".", "")
+                                    .replaceAll("-", "")
+                                    .trim())
+                                .length ==
                             16 &&
                         phone.mainData.contains("\u202c") &&
                         phone.mainData.contains("\u202A")) ||
@@ -64,13 +76,27 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                         (phone.mainData.replaceAll(" ", "").trim()).length ==
                             15) ||
                     //!phone.value.contains("+") ||
-                    (phone.mainData.replaceAll(" ", "").trim().length == 10 &&
+                    (phone.mainData
+                                .replaceAll(" ", "")
+                                .replaceAll(",", "")
+                                .replaceAll(".", "")
+                                .replaceAll("-", "")
+                                .trim()
+                                .length ==
+                            10 &&
                         !phone.mainData.contains("+") &&
                         phone.mainData.indexOf("00225") != 0 &&
                         !phone.mainData.contains("\u202c") &&
                         !phone.mainData.contains("\u202A")) ||
                     //!phone.value.contains("+") ||
-                    (phone.mainData.replaceAll(" ", "").trim().length == 12 &&
+                    (phone.mainData
+                                .replaceAll(" ", "")
+                                .replaceAll(",", "")
+                                .replaceAll(".", "")
+                                .replaceAll("-", "")
+                                .trim()
+                                .length ==
+                            12 &&
                         !phone.mainData.contains("+") &&
                         phone.mainData.indexOf("00225") != 0 &&
                         phone.mainData.contains("\u202c") &&
@@ -122,7 +148,13 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                 children: [
                   Row(
                     children: [
-                      BackButton(),
+                      BackButton(
+                        onPressed: processing
+                            ? null
+                            : () {
+                                Navigator.of(context).pop();
+                              },
+                      ),
                       Text(
                         "Passe à 8",
                         style: TextStyle(
@@ -174,7 +206,7 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
               ),
             ),
             Expanded(
-              child: processing && indexLoading<0
+              child: processing && indexLoading < 0
                   //Build a list view of all contacts, displaying their avatar and
                   // display name
                   ? Center(
@@ -222,105 +254,96 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                         contentPadding:
                                             const EdgeInsets.symmetric(
                                                 vertical: 2, horizontal: 18),
-                                        leading: CircleAvatar(
-                                          child: InkWell(
-                                            child: Center(
-                                              child: processing &&
-                                                      _contacts.indexOf(
-                                                              contact) ==
-                                                          indexLoading
-                                                  ? Row(
-                                                      mainAxisAlignment:
-                                                          MainAxisAlignment
-                                                              .center,
-                                                      children: [
-                                                        Container(
-                                                          height: 30,
-                                                          width: 30,
-                                                          child:
-                                                              CircularProgressIndicator(),
-                                                        )
-                                                      ],
-                                                    )
-                                                  : Icon(
-                                                      Icons.restore,
-                                                      size: 26,
-                                                      color: Colors.white,
-                                                    ),
-                                            ),
-                                            onTap: processing
-                                                ? null
-                                                : () async {
-                                                    Contact c = contact;
-                                                    setState(() {
-                                                      processing = true;
-                                                      indexLoading = _contacts
-                                                          .indexOf(contact);
-                                                    });
-                                                    setState(() {
-                                                      textLoading =
-                                                          "Sauvegarde des contacts à convertir";
-                                                    });
-                                                    //await Backup.writeContact(_contacts);
-                                                    setState(() {
-                                                      textLoading =
-                                                          "Conversion";
-                                                    });
-
-                                                    setState(() {
-                                                      textLoading =
-                                                          "${c.compositeName ?? c.nameData.firstName ?? c.nameData.middleName ?? c.nameData.surname ?? c.nickName ?? ''}";
-                                                    });
-                                                    List<PhoneNumber> items =
-                                                        new List();
-                                                    for (PhoneNumber i
-                                                        in c.phoneList) {
-                                                      bool isNewPhoneNumber =
-                                                          PhoneUtils
-                                                              .isIvorianNewPhone(
-                                                                  i.mainData);
-                                                      print(
-                                                          "${i.mainData} --> $isNewPhoneNumber");
-                                                      if (isNewPhoneNumber) {
-                                                        setState(() {
-                                                          textLoading =
-                                                              "reverse ${i.mainData}";
-                                                        });
-                                                        String
-                                                            normalizePhoneNumber =
-                                                            PhoneUtils
-                                                                .normalizeNumber(
-                                                                    i.mainData);
-                                                        String newPhone =
-                                                            PhoneUtils.reverse(
-                                                                normalizePhoneNumber);
-                                                        i.mainData = newPhone;
-                                                        print(
-                                                            "$normalizePhoneNumber --> $newPhone");
-                                                      }
-
-                                                      items.add(i);
-                                                    }
-                                                    c.phoneList = [];
-                                                    c.phoneList = items;
-                                                    //await ContactsService.deleteContact(c);
-                                                    await ContactEditor
-                                                        .updateContact(c,
-                                                            replaceOld: true);
-
-                                                    getContacts();
-                                                    _scaffoldKey.currentState
-                                                        .showSnackBar(
-                                                            new SnackBar(
-                                                      content: Text(
-                                                          "Opération éffectuée"),
-                                                      backgroundColor:
-                                                          Colors.green,
-                                                    ));
-                                                  },
+                                        trailing: IconButton(
+                                          icon: Center(
+                                            child: processing &&
+                                                    _contacts
+                                                            .indexOf(contact) ==
+                                                        indexLoading
+                                                ? Row(
+                                                    mainAxisAlignment:
+                                                        MainAxisAlignment
+                                                            .center,
+                                                    children: [
+                                                      Container(
+                                                        height: 30,
+                                                        width: 30,
+                                                        child:
+                                                            CircularProgressIndicator(),
+                                                      )
+                                                    ],
+                                                  )
+                                                : Icon(
+                                                    Icons.restore,
+                                                    size: 26,
+                                                    color: Colors.indigo,
+                                                  ),
                                           ),
-                                          backgroundColor:
-                                              Colors.grey.withOpacity(0.26),
+                                          onPressed: processing
+                                              ? null
+                                              : () async {
+                                                  Contact c = contact;
+                                                  setState(() {
+                                                    processing = true;
+                                                    indexLoading = _contacts
+                                                        .indexOf(contact);
+                                                  });
+                                                  setState(() {
+                                                    textLoading =
+                                                        "Sauvegarde des contacts à convertir";
+                                                  });
+                                                  //await Backup.writeContact(_contacts);
+                                                  setState(() {
+                                                    textLoading = "Conversion";
+                                                  });
+
+                                                  setState(() {
+                                                    textLoading =
+                                                        "${c.compositeName ?? c.nameData.firstName ?? c.nameData.middleName ?? c.nameData.surname ?? c.nickName ?? ''}";
+                                                  });
+                                                  List<PhoneNumber> items =
+                                                      new List();
+                                                  for (PhoneNumber i
+                                                      in c.phoneList) {
+                                                    bool isNewPhoneNumber =
+                                                        PhoneUtils
+                                                            .isIvorianNewPhone(
+                                                                i.mainData);
+                                                    //print("${i.mainData} --> $isNewPhoneNumber");
+                                                    if (isNewPhoneNumber) {
+                                                      setState(() {
+                                                        textLoading =
+                                                            "reverse ${i.mainData}";
+                                                      });
+                                                      /*String
+                                                normalizePhoneNumber =
+                                                PhoneUtils
+                                                    .normalizeNumber(i.mainData);*/
+                                                      String newPhone =
+                                                          PhoneUtils.reverse(
+                                                              i.mainData);
+                                                      i.mainData = newPhone;
+                                                    }
+
+                                                    items.add(i);
+                                                  }
+                                                  c.phoneList = [];
+                                                  c.phoneList = items;
+                                                  //await ContactsService.deleteContact(c);
+                                                  await ContactEditor
+                                                      .updateContact(c,
+                                                          replaceOld: true);
+
+                                                  getContacts();
+                                                  _scaffoldKey.currentState
+                                                      .showSnackBar(
+                                                          new SnackBar(
+                                                    content: Text(
+                                                        "Opération éffectuée"),
+                                                    backgroundColor:
+                                                        Colors.green,
+                                                  ));
+                                                },
                                         ),
                                         title: Text(contact.compositeName ??
                                             contact.nameData.firstName ??
@@ -332,39 +355,34 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                           children: [
                                             ...contact.phoneList.map(
                                               (PhoneNumber phone) {
-                                                print(
-                                                    "------------------ ${contact.compositeName ?? contact.nameData.firstName ?? contact.nameData.middleName ?? contact.nameData.surname ?? contact.nickName ?? ''} ------------------");
-                                                print(phone.mainData);
+                                                //print("------------------ ${contact.compositeName ?? contact.nameData.firstName ?? contact.nameData.middleName ?? contact.nameData.surname ?? contact.nickName ?? ''} ------------------");
+                                                //print(phone.mainData);
 
                                                 bool isIvPhoneNumber =
                                                     PhoneUtils.isIvorianPhone(
                                                         phone.mainData);
 
-                                                print(
-                                                    "isIvPhoneNumber $isIvPhoneNumber");
+                                                //print("isIvPhoneNumber $isIvPhoneNumber");
                                                 bool isNewIvPhoneNumber =
                                                     PhoneUtils
                                                         .isIvorianNewPhone(
                                                             phone.mainData);
 
-                                                print(
-                                                    "isNewIvPhoneNumber $isNewIvPhoneNumber");
+                                                //print("isNewIvPhoneNumber $isNewIvPhoneNumber");
                                                 String normalizePhoneNumber =
                                                     PhoneUtils.normalizeNumber(
                                                         phone.mainData);
 
-                                                print(
-                                                    "normalizePhoneNumber $normalizePhoneNumber");
+                                                //print("normalizePhoneNumber $normalizePhoneNumber");
 
                                                 bool isValideOldNumber = PhoneUtils
                                                     .validateNormalizeOldPhoneNumber(
                                                         normalizePhoneNumber);
 
-                                                print(
-                                                    "isValideOldNumber $isValideOldNumber");
+                                                //print("isValideOldNumber $isValideOldNumber");
 
                                                 dynamic operator = PhoneUtils
-                                                    .determinateOperator(
+                                                    .determinateNewOperator(
                                                         normalizePhoneNumber);
 
                                                 String phoneIv = PhoneUtils
@@ -490,7 +508,15 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
             child: processing
                 ? Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: [Text("$textLoading ...")],
+                    children: [
+                      Text(
+                        "$textLoading ...",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
+                      )
+                    ],
                   )
                 : InkWell(
                     child: febrary2021.isAfter(DateTime.now()) || isActiveSaved
@@ -648,24 +674,24 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                         c.middleName == contact.middleName &&
                                         c.familyName == contact.familyName &&
                                         c.givenName == contact.givenName) {
-                                      print(
+                                      //print(
                                           "------> OK :::::::> ${contact.displayName ?? contact.familyName ?? contact.givenName ?? contact.middleName}");
-                                      print(contact.toString());
-                                      print(contact.middleName);
-                                      print(contact.familyName);
-                                      print(contact.givenName);
-                                      print(contact.displayName);
-                                      print(contact.unifiedContactId);
-                                      print(contact.singleContactId);
-                                      print(contact.identifier);
+                                      //print(contact.toString());
+                                      //print(contact.middleName);
+                                      //print(contact.familyName);
+                                      //print(contact.givenName);
+                                      //print(contact.displayName);
+                                      //print(contact.unifiedContactId);
+                                      //print(contact.singleContactId);
+                                      //print(contact.identifier);
                                       break checkId;
                                     } else {
-                                      print("BAD ID ${c.identifier}");
+                                      //print("BAD ID ${c.identifier}");
                                       await contactWarning(c, size, theme);
                                       continue;
                                     }
                                   } catch (e) {
-                                    print("BAD ID (catch ex) ${c.identifier}");
+                                    //print("BAD ID (catch ex) ${c.identifier}");
                                     await contactWarning(c, size, theme);
                                     continue;
                                   }
@@ -674,18 +700,17 @@ class _BackTo8ActivityState extends State<BackTo8Activity> {
                                 for (PhoneNumber i in c.phoneList) {
                                   bool isNewPhoneNumber =
                                       PhoneUtils.isIvorianNewPhone(i.mainData);
-                                  print("${i.mainData} --> $isNewPhoneNumber");
+                                  //print("${i.mainData} --> $isNewPhoneNumber");
                                   if (isNewPhoneNumber) {
-                                    setState(() {
+                                    /*setState(() {
                                       textLoading = "reverse ${i.mainData}";
-                                    });
+                                    });*/
                                     String normalizePhoneNumber =
                                         PhoneUtils.normalizeNumber(i.mainData);
                                     String newPhone = PhoneUtils.reverse(
                                         normalizePhoneNumber);
                                     i.mainData = newPhone;
-                                    print(
-                                        "$normalizePhoneNumber --> $newPhone");
+                                    //print(  "$normalizePhoneNumber --> $newPhone");
                                   }
 
                                   //phone.value.contains("\u202c") &&

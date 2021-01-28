@@ -1,4 +1,6 @@
- import 'package:contact_editor/contact_editor.dart';
+import 'dart:math';
+
+import 'package:contact_editor/contact_editor.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:numerotation/NumerotationApp.dart';
@@ -6,7 +8,6 @@ import 'package:numerotation/RouterGenerator.dart';
 import 'package:numerotation/core/App.dart';
 import 'package:numerotation/core/Constantes.dart';
 import 'package:numerotation/core/GlobalTranslations.dart';
-import 'package:numerotation/core/utils/Backup.dart';
 import 'package:numerotation/core/utils/PhoneUtils.dart';
 import 'package:numerotation/core/utils/theme.dart';
 import 'package:numerotation/shared/RoundedCheckBox.dart';
@@ -25,6 +26,8 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
     super.didChangeDependencies();
     routeObserver.subscribe(this, ModalRoute.of(context));
   }
+
+  DateTime febrary2021 = DateTime.tryParse("2021-02-01 00:00:00Z");
 
   @override
   void didPush() {
@@ -58,7 +61,6 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
   bool selectionState = true;
   bool loaindActionProcess = false;
 
-  DateTime febrary2021 = DateTime.tryParse("2021-01-31 23:59:00Z");
   DateTime now = DateTime.now();
 
   @override
@@ -77,33 +79,31 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
     if (await Permission.contacts.request().isGranted) {
       //We already have permissions for contact when we get to this page, so we
       // are now just retrieving it
-      List<Contact> contactsAll =
-          await ContactEditor.getContacts;
+      List<Contact> contactsAll = await ContactEditor.getContacts;
       Iterable<Contact> contacts = contactsAll;
       if (contacts.isNotEmpty) {
         contacts = contacts.where((element) =>
             element.phoneList.isNotEmpty &&
-            element.phoneList.any((phone) =>
-            PhoneUtils.isIvorianOldPhone(phone.mainData)) && !element.phoneList.every((phone)
-                {
+            element.phoneList
+                .any((phone) => PhoneUtils.isIvorianOldPhone(phone.mainData)) &&
+            !element.phoneList.every((phone) {
+              return element.phoneList.any((p) {
+                if (PhoneUtils.isIvorianNewPhone(phone.mainData)) return true;
+                bool haveAlreadyAlreadyContactConvert = false;
 
-                  return element.phoneList.any((p){
-                    if(PhoneUtils.isIvorianNewPhone(phone.mainData))
-                      return true ;
-                    bool haveAlreadyAlreadyContactConvert = false;
+                haveAlreadyAlreadyContactConvert =
+                    PhoneUtils.isIvorianNewPhone(p.mainData) &&
+                        PhoneUtils.normalizeNumber(
+                                PhoneUtils.reverse(p.mainData)) ==
+                            PhoneUtils.normalizeNumber(phone.mainData);
 
-                    haveAlreadyAlreadyContactConvert =
-                        PhoneUtils.isIvorianNewPhone(p.mainData)
-                    &&  PhoneUtils.normalizeNumber(PhoneUtils.reverse(p.mainData))==PhoneUtils.normalizeNumber(phone.mainData);
-
-                    return haveAlreadyAlreadyContactConvert;
-                  });
-                }
-            ));
+                return haveAlreadyAlreadyContactConvert;
+              });
+            }));
       }
 
       print("------------------- ");
-     // print(contacts.map((e) => e.identifier).length);
+      // print(contacts.map((e) => e.identifier).length);
       // print(contacts.map((e) => e.identifier).join("|")+" %%% ");
       setState(() {
         _contacts = contacts;
@@ -251,8 +251,8 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                       (c.nickName ?? "")
                                           .toLowerCase()
                                           .contains(value.toLowerCase()) ||
-                                      c.phoneList
-                                          .any((p) => p.mainData.contains(value)));
+                                      c.phoneList.any(
+                                          (p) => p.mainData.contains(value)));
 
                                   setState(() {});
                                 },
@@ -291,14 +291,17 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                     Padding(
                       padding: EdgeInsets.all(0.0),
                       child: ListTile(
-                        onTap: (){
+                        onTap: () {
                           getContacts();
                         },
                         leading: CircleAvatar(
                           radius: 42,
                           backgroundColor: primaryColor,
                           child: Center(
-                            child: Icon(Icons.refresh, color: Colors.white,),
+                            child: Icon(
+                              Icons.refresh,
+                              color: Colors.white,
+                            ),
                           ),
                         ),
                         title: Text(
@@ -691,17 +694,18 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                                                     height: 5,
                                                                   ),
                                                                   Row(
-                                                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                                                    mainAxisAlignment:
+                                                                        MainAxisAlignment
+                                                                            .spaceBetween,
                                                                     children: [
                                                                       Container(
-                                                                        height: 45,
-                                                                        width: MediaQuery.of(
-                                                                                context)
-                                                                            .size
-                                                                            .width/3,
+                                                                        height:
+                                                                            45,
+                                                                        width:
+                                                                            MediaQuery.of(context).size.width /
+                                                                                3,
                                                                         padding:
-                                                                            EdgeInsets.all(
-                                                                                5),
+                                                                            EdgeInsets.all(5),
                                                                         child:
                                                                             FlatButton(
                                                                           shape:
@@ -714,32 +718,27 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                                                             "${allTranslations.text("btn_shared_labelle")}",
                                                                             style:
                                                                                 TextStyle(
-                                                                              color:
-                                                                                  Colors.white,
-                                                                              fontWeight:
-                                                                                  FontWeight.bold,
+                                                                              color: Colors.white,
+                                                                              fontWeight: FontWeight.bold,
                                                                             ),
                                                                           ),
                                                                           color:
                                                                               primaryColor,
                                                                           onPressed:
                                                                               () {
-                                                                            Share.share(
-                                                                                'Bonjour ce contact : ${e.text} est désormais ${PhoneUtils.addIndicatifNumber(PhoneUtils.convert(e.text))}');
-                                                                            Navigator.of(context)
-                                                                                .pop();
+                                                                            Share.share('Bonjour ce contact : ${e.text} est désormais ${PhoneUtils.addIndicatifNumber(PhoneUtils.convert(e.text))}');
+                                                                            Navigator.of(context).pop();
                                                                           },
                                                                         ),
                                                                       ),
                                                                       Container(
-                                                                        height: 45,
-                                                                        width: MediaQuery.of(
-                                                                                context)
-                                                                            .size
-                                                                            .width/3,
+                                                                        height:
+                                                                            45,
+                                                                        width:
+                                                                            MediaQuery.of(context).size.width /
+                                                                                3,
                                                                         padding:
-                                                                            EdgeInsets.all(
-                                                                                5),
+                                                                            EdgeInsets.all(5),
                                                                         child:
                                                                             FlatButton(
                                                                           shape:
@@ -752,18 +751,15 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                                                             "Appeler",
                                                                             style:
                                                                                 TextStyle(
-                                                                              color:
-                                                                                  Colors.white,
-                                                                              fontWeight:
-                                                                                  FontWeight.bold,
+                                                                              color: Colors.white,
+                                                                              fontWeight: FontWeight.bold,
                                                                             ),
                                                                           ),
                                                                           color:
                                                                               secondaryColor,
                                                                           onPressed:
                                                                               () async {
-                                                                                await launch("tel:${PhoneUtils.addIndicatifNumber(PhoneUtils.convert(e.text))}");
-
+                                                                            await launch("tel:${PhoneUtils.addIndicatifNumber(PhoneUtils.convert(e.text))}");
                                                                           },
                                                                         ),
                                                                       ),
@@ -844,10 +840,22 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                       ),
                                       padding: EdgeInsets.all(10),
                                     ),
-                                    Text(
-                                      "Revenir de 10 à 8 chiffres",
-                                      textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.white, fontSize: 12),
+                                    Column(
+                                      children: [
+                                        Text(
+                                          "Revenir de 10 à 8 chiffres",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 12),
+                                        ),
+                                        Text(
+                                          "Restauration",
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                              color: Colors.white, fontSize: 9),
+                                        ),
+                                      ],
                                     ),
                                   ],
                                 ),
@@ -895,7 +903,8 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                     Text(
                                       "Faire un don",
                                       textAlign: TextAlign.center,
-                                      style: TextStyle(color: Colors.white, fontSize: 12),
+                                      style: TextStyle(
+                                          color: Colors.white, fontSize: 12),
                                     ),
                                   ],
                                 ),
@@ -961,15 +970,16 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                 ),
                         ),
                       ),
-                      if(false)Expanded(
-                        flex: 4,
-                        child: FlatButton(
-                          onPressed: _selectedContact.length > 0
-                              ? () {
-                                  createBackup();
-                                }
-                              : null,
-                          /*
+                      if (false)
+                        Expanded(
+                          flex: 4,
+                          child: FlatButton(
+                            onPressed: _selectedContact.length > 0
+                                ? () {
+                                    createBackup();
+                                  }
+                                : null,
+                            /*
                           () {
                             Navigator.of(context).pushNamed(
                                 RouterGenerator.exports,
@@ -979,30 +989,30 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                     .toList());
                           },
                           */
-                          child: (loaindActionProcess || _contacts == null)
-                              ? Row(
-                                  children: [
-                                    Container(
-                                      width: 60,
-                                      height: 2,
-                                      child: LinearProgressIndicator(),
-                                    )
-                                  ],
-                                )
-                              : Text(
-                                  "${allTranslations.text("btn_backup_labelle")}",
-                                  style: Theme.of(context)
-                                      .textTheme
-                                      .headline6
-                                      .copyWith(
-                                        fontSize: 12,
-                                        color: _selectedContact.length > 0
-                                            ? primaryColor
-                                            : Colors.grey,
-                                      ),
-                                ),
+                            child: (loaindActionProcess || _contacts == null)
+                                ? Row(
+                                    children: [
+                                      Container(
+                                        width: 60,
+                                        height: 2,
+                                        child: LinearProgressIndicator(),
+                                      )
+                                    ],
+                                  )
+                                : Text(
+                                    "${allTranslations.text("btn_backup_labelle")}",
+                                    style: Theme.of(context)
+                                        .textTheme
+                                        .headline6
+                                        .copyWith(
+                                          fontSize: 12,
+                                          color: _selectedContact.length > 0
+                                              ? primaryColor
+                                              : Colors.grey,
+                                        ),
+                                  ),
+                          ),
                         ),
-                      ),
                     ],
                   ),
                 ),
@@ -1040,19 +1050,19 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                             itemBuilder: (BuildContext context, int index) {
                               Contact contact = _contacts?.elementAt(index);
 
-                              List<PhoneNumber> phones =
-                              contact.phoneList.fold(new List<PhoneNumber>(), (previousValue, element) {
+                              List<PhoneNumber> phones = contact.phoneList
+                                  .fold(new List<PhoneNumber>(),
+                                      (previousValue, element) {
                                 if (!previousValue.any((e) =>
-                                element.labelName == e.labelName && //1
-                                    (
-                                        (element.mainData
-                                            .replaceAll("(", "")
-                                            .replaceAll(")", "")
-                                            .replaceAll("-", "")
-                                            .replaceAll("\u202c", "")
-                                            .replaceAll("\u202A", "")
-                                            .replaceAll(" ", "")
-                                            .trim() ==
+                                    element.labelName == e.labelName && //1
+                                    ((element.mainData
+                                                .replaceAll("(", "")
+                                                .replaceAll(")", "")
+                                                .replaceAll("-", "")
+                                                .replaceAll("\u202c", "")
+                                                .replaceAll("\u202A", "")
+                                                .replaceAll(" ", "")
+                                                .trim() ==
                                             e.mainData
                                                 .replaceAll("(", "")
                                                 .replaceAll(")", "")
@@ -1061,12 +1071,16 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                                 .replaceAll("\u202A", "")
                                                 .replaceAll(" ", "")
                                                 .trim()) //2
-                                            ||
-                                            (PhoneUtils.isIvorianPhone(e.mainData) &&
-                                                PhoneUtils.isIvorianPhone(element.mainData) &&
-                                                PhoneUtils.normalizeNumber(e.mainData) ==
-                                                    PhoneUtils.normalizeNumber(element.mainData) //2'
-                                            )))) {
+                                        ||
+                                        (PhoneUtils.isIvorianPhone(
+                                                e.mainData) &&
+                                            PhoneUtils.isIvorianPhone(
+                                                element.mainData) &&
+                                            PhoneUtils.normalizeNumber(
+                                                    e.mainData) ==
+                                                PhoneUtils.normalizeNumber(
+                                                    element.mainData) //2'
+                                        )))) {
                                   previousValue.add(element);
                                 }
                                 return previousValue;
@@ -1092,57 +1106,85 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                 ),
                                 padding: EdgeInsets.all(2),
                                 margin: EdgeInsets.all(2),
-                                child: InkWell(
-                                  borderRadius: BorderRadius.circular(20),
-                                  child: Row(
-                                    children: [
-                                      Expanded(
-                                        child: ListTile(
-                                          contentPadding:
-                                              const EdgeInsets.symmetric(
-                                            vertical: 2,
-                                            horizontal: 10,
-                                          ),
-                                          leading: CircleAvatar(
-                                                  child: Icon(
-                                                    CupertinoIcons.person_solid,
-                                                    size: 26,
-                                                    color: Colors.white,
-                                                  ),
-                                                  backgroundColor: Colors.grey
-                                                      .withOpacity(0.26),
-                                                ),
-                                          title: Text(
-                                                contact.compositeName ??
-                                            contact.nameData.firstName ??
-                                                contact.nameData.middleName ??
-                                                contact.nameData.surname ??
-                                                contact.nickName ??
-                                                '',
-                                            style: TextStyle(
-                                              color: Colors.black,
-                                              fontWeight: FontWeight.bold,
+                                child: Row(
+                                  children: [
+                                    Expanded(
+                                      child: ListTile(
+                                        contentPadding:
+                                            const EdgeInsets.symmetric(
+                                          vertical: 2,
+                                          horizontal: 10,
+                                        ),
+                                        leading: CircleAvatar(
+                                          child: IconButton(
+                                            icon: Icon(
+                                              CupertinoIcons.phone,
+                                              size: 26,
+                                              color: Colors.lightBlueAccent,
                                             ),
+                                            onPressed: contact.phoneList.isEmpty
+                                                ? null
+                                                : () async {
+                                                    if (contact
+                                                            .phoneList.length ==
+                                                        1) {
+                                                      await call(contact
+                                                          .phoneList
+                                                          .first
+                                                          .mainData);
+                                                    } else {
+                                                      //open bottom sheet
+                                                      displayBottomCallSheet(
+                                                          context, contact);
+                                                    }
+                                                  },
                                           ),
-                                          subtitle: Row(
-                                            mainAxisAlignment:
-                                                MainAxisAlignment.spaceBetween,
-                                            children: [
-                                              Text(contact.phoneList.isNotEmpty
-                                                  ? contact.phoneList.first.mainData
-                                                  : contact.emailList.isNotEmpty
-                                                      ? contact
-                                                          .emailList.first.mainData
-                                                      : ""),
-                                              Text(
-                                                "${contact.phoneList.length} numéro(s)",
-                                                style: TextStyle(fontSize: 9),
-                                              )
-                                            ],
-                                          ),
+                                          backgroundColor:
+                                              Colors.grey.withOpacity(0.06),
+                                        ),
+                                        title: Row(
+                                          children: [
+                                            Expanded(
+                                              child: Text(
+                                                contact.compositeName ??
+                                                    contact
+                                                        .nameData.firstName ??
+                                                    contact
+                                                        .nameData.middleName ??
+                                                    contact.nameData.surname ??
+                                                    contact.nickName ??
+                                                    '',
+                                                maxLines: 1,
+                                                style: TextStyle(
+                                                  color: Colors.black,
+                                                  fontWeight: FontWeight.bold,
+                                                ),
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        subtitle: Row(
+                                          mainAxisAlignment:
+                                              MainAxisAlignment.spaceBetween,
+                                          children: [
+                                            Text(contact.phoneList.isNotEmpty
+                                                ? contact
+                                                    .phoneList.first.mainData
+                                                : contact.emailList.isNotEmpty
+                                                    ? contact.emailList.first
+                                                        .mainData
+                                                    : ""),
+                                            Text(
+                                              "${contact.phoneList.length} numéro(s)",
+                                              style: TextStyle(fontSize: 9),
+                                            )
+                                          ],
                                         ),
                                       ),
-                                      Visibility(
+                                    ),
+                                    InkWell(
+                                      borderRadius: BorderRadius.circular(20),
+                                      child: Visibility(
                                         visible: selectionState,
                                         child: Container(
                                           width: 30,
@@ -1151,27 +1193,27 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                                               onChanged: (value) {
                                                 selectedItem(value, contact);
                                               },
-                                              value: _selectedContact.contains(
-                                                      contact.contactId) ,
+                                              value: _selectedContact
+                                                  .contains(contact.contactId),
                                             ),
                                           ),
                                         ),
                                       ),
-                                    ],
-                                  ),
-                                  onLongPress: () {
-                                    setState(() {
-                                      //selectionState = !selectionState;
-                                      if (!selectionState) {
-                                        _selectedContact.clear();
-                                      }
-                                    });
-                                  },
-                                  onTap: () {
-                                    if (selectionState) {
-                                      selectedItem(selectionState, contact);
-                                    }
-                                  },
+                                      onLongPress: () {
+                                        setState(() {
+                                          //selectionState = !selectionState;
+                                          if (!selectionState) {
+                                            _selectedContact.clear();
+                                          }
+                                        });
+                                      },
+                                      onTap: () {
+                                        if (selectionState) {
+                                          selectedItem(selectionState, contact);
+                                        }
+                                      },
+                                    ),
+                                  ],
                                 ),
                               );
                             },
@@ -1213,8 +1255,8 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
             Navigator.of(context).pushNamed(
               RouterGenerator.convert,
               arguments: _contacts
-                  .where((element) =>
-                      _selectedContact.contains(element.contactId))
+                  .where(
+                      (element) => _selectedContact.contains(element.contactId))
                   .toList(),
             );
           },
@@ -1225,6 +1267,17 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
         ),
       ),
     );
+  }
+
+  Future call(String contact) async {
+    if (PhoneUtils.isIvorianPhone(contact)) {
+      String phone = febrary2021.isBefore(now)
+          ? PhoneUtils.addIndicatifNumber(PhoneUtils.convert(contact))
+          : contact;
+      await launch("tel:${phone}");
+    } else {
+      await launch("tel:${contact}");
+    }
   }
 
   Future showDialogDonation(
@@ -1421,38 +1474,40 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
                   ),
                   onTap: () {
                     Share.share(
-                        '''Partagez Passe à 10 \n Une application pour vous permettre de migrer tous vos contacts au 31 janvier 2021. \nElle est totalement gratuite et ne collecte aucunes de vos données personnelles \n*Cliquez sur le lien pour télécharger sur google play* : https://play.google.com/store/apps/details?id=com.flutter.fute.numerotation''');
+                        '''Partagez Passe à 10 \n Une application pour vous permettre de migrer tous vos contacts au 31 janvier 2021. \nElle est totalement gratuite et ne collecte aucunes de vos données personnelles \n*Cliquez sur le lien pour télécharger*  \nsur google play : https://play.google.com/store/apps/details?id=com.flutter.fute.numerotation \nou sur App store : https://apps.apple.com/us/app/passe-%C3%A0-10/id1547603562 ''');
                   },
                 ),
-                if(false)ListTile(
-                  leading: Icon(Icons.backup),
-                  title: Text(
-                    "${allTranslations.text("menu_create_backup")}",
-                    style: TextStyle(
-                      color: _selectedContact.length > 0
-                          ? primaryColor
-                          : Colors.grey,
+                if (false)
+                  ListTile(
+                    leading: Icon(Icons.backup),
+                    title: Text(
+                      "${allTranslations.text("menu_create_backup")}",
+                      style: TextStyle(
+                        color: _selectedContact.length > 0
+                            ? primaryColor
+                            : Colors.grey,
+                      ),
                     ),
+                    onTap: _selectedContact.length > 0
+                        ? () {
+                            createBackup();
+                          }
+                        : null,
                   ),
-                  onTap: _selectedContact.length > 0
-                      ? () {
-                          createBackup();
-                        }
-                      : null,
-                ),
-               if(false) ListTile(
-                  leading: Icon(Icons.restore),
-                  title: Text(
-                    "${allTranslations.text("menu_restore_backup")}",
-                    style: TextStyle(
-                      color: primaryColor,
+                if (false)
+                  ListTile(
+                    leading: Icon(Icons.restore),
+                    title: Text(
+                      "${allTranslations.text("menu_restore_backup")}",
+                      style: TextStyle(
+                        color: primaryColor,
+                      ),
                     ),
+                    onTap: () async {
+                      //Backup b = new Backup(context);
+                      // await b.getBackup();
+                    },
                   ),
-                  onTap: () async {
-                    //Backup b = new Backup(context);
-                   // await b.getBackup();
-                  },
-                ),
                 ListTile(
                   leading: Icon(Icons.help_center_rounded),
                   title: Text(
@@ -1499,6 +1554,67 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
     );
   }
 
+  void displayBottomCallSheet(BuildContext context, Contact contact) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (ctx) {
+        return Container(
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.vertical(
+              top: Radius.circular(40),
+            ),
+            color: Colors.white,
+          ),
+          height: MediaQuery.of(context).size.height * 0.41,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Container(
+                  width: MediaQuery.of(context).size.width,
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    color: primaryColor.withOpacity(0.1),
+                    borderRadius: BorderRadius.vertical(
+                      top: Radius.circular(20.0),
+                    ),
+                  ),
+                  child: Center(
+                    child: Text(
+                      contact.compositeName ??
+                          contact.nameData.firstName ??
+                          contact.nameData.middleName ??
+                          contact.nameData.surname ??
+                          contact.nickName ??
+                          "Quel contact voulez-vous appeler ?",
+                      style: TextStyle(
+                        fontSize: 18.0,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ),
+                ...contact.phoneList.map((e) => ListTile(
+                      trailing: Icon(CupertinoIcons.phone),
+                      title: Text(
+                        "${e.mainData}",
+                        style: TextStyle(
+                          color: primaryColor,
+                        ),
+                      ),
+                      onTap: () async {
+                        await call(e.mainData);
+                      },
+                    ))
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Future<void> selectDeselectall() async {
     setState(() {
       loaindActionProcess = true;
@@ -1520,8 +1636,7 @@ class _HomeActivityState extends State<HomeActivity> with RouteAware {
     //print("value : $value");
     //print("contact.identifier : ${contact.identifier}");
     if (_selectedContact.contains(contact.contactId)) {
-      _selectedContact
-          .removeAt(_selectedContact.indexOf(contact.contactId));
+      _selectedContact.removeAt(_selectedContact.indexOf(contact.contactId));
     } else {
       _selectedContact.add(contact.contactId);
     }

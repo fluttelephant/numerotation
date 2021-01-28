@@ -247,6 +247,33 @@ class PhoneUtils {
     return opFixe;
   }
 
+  static dynamic determinateNewOperator(String phoneNumber) {
+    if (phoneNumber.length < 8) return null;
+
+    //print("determinateOldOperator");
+    //print(phoneNumber);
+    //check is mobile
+
+    String initial = phoneNumber.substring(0, 2);
+
+
+    //check is fix
+    //print("check is fix :::: determinateOldOperator initial ::: ");
+     initial = phoneNumber.substring(0, 2);
+    List<dynamic> ops = operatorsNumber
+        .where((element){
+          //print(element["new_initial"]);
+          //print("$initial".trim());
+          //print(element["new_initial"] == "$initial".trim().toString());
+     return element["new_initial"] == "$initial".trim().toString();
+
+    })
+        .toList();
+
+    dynamic opFixe = ops != null && ops.isNotEmpty ? ops.first : null;
+    return opFixe;
+  }
+
   static String convert(String phone) {
     phone = normalizeNumber(phone);
     if (!validateNormalizeOldPhoneNumber(phone)) return null;
