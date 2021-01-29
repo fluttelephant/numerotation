@@ -1,6 +1,8 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:numerotation/core/App.dart';
+import 'package:numerotation/core/Constantes.dart';
 
 import '../RouterGenerator.dart';
 
@@ -34,10 +36,17 @@ class _SplashScreenActivity extends State<SplashScreenActivity>
   }
 
   onDoneLoading() async {
-    // AppInit.prefs.remove("$storageKey$storageTokenSuffix");
-    // test login
+    //AppInit.prefs.remove("$storageKey$storageTokenSuffix");
+    // test user phone saved
+
     //Load profil
-    Navigator.of(context).pushReplacementNamed(RouterGenerator.login);
+
+    if (App.prefs.containsKey(storageKey + PREF_USER_NAME) &&
+        App.prefs.containsKey(storageKey + PREF_USER_PHONE_NUMBER)) {
+      Navigator.of(context).pushReplacementNamed(RouterGenerator.home);
+    } else {
+      Navigator.of(context).pushReplacementNamed(RouterGenerator.login);
+    }
   }
 
   @override
@@ -45,10 +54,12 @@ class _SplashScreenActivity extends State<SplashScreenActivity>
     return Scaffold(
       key: _scaffoldKey,
       body: Center(
-        child: Text("SplashScreenActivity",
+        child: Text(
+          "SplashScreenActivity",
           style: Theme.of(context).textTheme.headline4.copyWith(
-            color: Colors.black,
-          ),),
+                color: Colors.black,
+              ),
+        ),
       ),
     );
   }

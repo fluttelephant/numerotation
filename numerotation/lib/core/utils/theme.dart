@@ -1,4 +1,3 @@
-
 import 'package:flutter/material.dart';
 
 const LushLava = Color(0xFFFF4500);
@@ -203,7 +202,8 @@ final TextStyle kSubtitleStyle = TextStyle(
 );
 
 final Color themeColor = new Color(0xfff5a623);
-final Color primaryColor = new Color(0xff203152);
+final Color primaryColor = new Color(0xFF6A9CF0);
+final Color secondaryColor = new Color(0xFF66C7B4);
 final Color greyColor = new Color(0xffaeaeae);
 final Color greyColor2 = new Color(0xffE8E8E8);
 

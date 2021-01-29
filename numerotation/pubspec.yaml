@@ -1,5 +1,5 @@
 name: numerotation
-description: Mdifications apportées au plan de numérotage E.164 de la République de Côte d’Ivoire
+description: Modifications apportées au plan de numérotage E.164 de la République de Côte d’Ivoire
 
 # The following line prevents the package from being accidentally published to
 # pub.dev using `pub publish`. This is preferred for private packages.
@@ -15,7 +15,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 # In iOS, build-name is used as CFBundleShortVersionString while build-number used as CFBundleVersion.
 # Read more about iOS versioning at
 # https://developer.apple.com/library/archive/documentation/General/Reference/InfoPlistKeyReference/Articles/CoreFoundationKeys.html
-version: 1.0.0+1
+version: 1.2.0+11
 
 environment:
   sdk: ">=2.7.0 <3.0.0"
@@ -23,7 +23,6 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
-
   flutter_localizations:
     sdk: flutter
 
@@ -32,10 +31,18 @@ dependencies:
   cupertino_icons: ^1.0.0
   shared_preferences: ^0.5.12+4
 
+  path_provider: ^1.6.24
+  google_fonts: ^1.1.1
+  share: ^0.6.5+4
 
+  flutter_html: ^1.1.1
   permission_handler: ^5.0.1+1
-  contacts_service: ^0.4.6
+  # contacts_service: ^0.4.6
   url_launcher: ^5.4.2
+
+  contact_editor:
+    git: https://gitlab.com/guyaristide/contact-editor-flutter-plugin.git
+
 
 dev_dependencies:
   flutter_test:
@@ -57,6 +64,7 @@ flutter:
     - locale/
     - res/
     - res/images/
+    - res/icons/
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware.

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:numerotation/core/GlobalTranslations.dart';
 import 'package:numerotation/core/utils/theme.dart';
 
@@ -28,7 +29,7 @@ class _NumerotationAppState extends State<NumerotationApp> {
       locale: allTranslations.locale,
       theme: _buildThemeData(),
       navigatorObservers: [routeObserver],
-      initialRoute: RouterGenerator.featuresList,
+      initialRoute: RouterGenerator.login,
       onGenerateRoute: RouterGenerator.generateRoute,
       //debugShowMaterialGrid: true,
       debugShowCheckedModeBanner: false,
@@ -43,19 +44,26 @@ class _NumerotationAppState extends State<NumerotationApp> {
       backgroundColor: whiteLilac,
       visualDensity: VisualDensity.adaptivePlatformDensity,
       fontFamily: "Proxima Nova",
-      textTheme: TextTheme(
-        headline6: TextStyle(
-          fontSize: 26,
-          fontWeight: FontWeight.bold,
-        ),
-        headline5: TextStyle(
-          fontSize: 20,
-          fontWeight: FontWeight.bold,
-        ),
-        headline4: TextStyle(
-          fontSize: 16,
-          fontWeight: FontWeight.bold,
-        ),
+      textTheme: GoogleFonts.latoTextTheme(
+        Theme.of(context).textTheme.copyWith(
+              headline6: TextStyle(
+                fontSize: 26,
+                fontWeight: FontWeight.bold,
+              ),
+              headline5: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+              headline4: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+              button: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
       ),
     );
   }

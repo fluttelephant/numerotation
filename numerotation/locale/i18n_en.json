@@ -1,3 +1,20 @@
 {
-  "app_name": "Numerotation"
+  "app_name": "Passe a 10",
+  "btn_save_labelle": "Enrégistrer",
+  "btn_backup_labelle": "Sauvegarder",
+  "labelle_selected_contact": "contacts selectionnés",
+  "selected_contact": "Contacts sélectionnés",
+  "backup_continuous_text": "Si vous décidez de continuer vos contacts sélectionnés vont être sauvegardé dans un fichier que l'application pourra restaurer.",
+  "select_contacts_to_backup": "Sélectionnez les contacts à sauvegarder.",
+  "menu_shared_app": "Inviter vos amis à télécharger l'application",
+  "menu_shared_contact": "À propos de nous",
+  "menu_create_backup": "Créer une sauvegarde",
+  "menu_restore_backup": "Restaurer une sauvegarde",
+  "menu_about": "À propos de nous",
+  "btn_title_convert": "Convertir",
+  "txt_title_no_contact": "Aucun contact",
+  "label_found": "trouvé(s)",
+  "label_select_all":  "Tout selectionner",
+  "label_unselect_all":  "déselectionner",
+  "label_contacts_selected": "selected contact(s)"
 }
